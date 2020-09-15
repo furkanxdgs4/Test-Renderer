@@ -240,15 +240,6 @@ namespace GFX_API {
 			ImGui::Image((void*)(intptr_t)data, ImVec2(Display_WIDTH, Display_HEIGHT));
 		}
 	}
-	void IMGUI_Core::Display_RenderTarget(unsigned int RT_GFXID, const unsigned int& Display_WIDTH, const unsigned int& Display_HEIGHT, bool should_Flip_Vertically) {
-		unsigned int data = *((unsigned int*)GPUContentManager->Find_RenderTarget_byID(RT_GFXID)->GL_ID);
-		if (should_Flip_Vertically) {
-			ImGui::Image((void*)(intptr_t)data, ImVec2(Display_WIDTH, Display_HEIGHT), ImVec2(0, 1), ImVec2(1, 0));
-		}
-		else {
-			ImGui::Image((void*)(intptr_t)data, ImVec2(Display_WIDTH, Display_HEIGHT));
-		}
-	}
 	bool IMGUI_Core::Begin_TabBar() {
 		return ImGui::BeginTabBar("");
 	}

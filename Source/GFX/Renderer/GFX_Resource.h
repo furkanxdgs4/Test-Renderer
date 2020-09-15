@@ -10,17 +10,6 @@
 
 
 namespace GFX_API {
-	//Create Render Targets as textures
-	struct GFXAPI RenderTarget {
-	public:
-		TEXTURE_DIMENSIONs DIMENSION;
-		TEXTURE_TYPEs FORMAT;
-		UNIFORMTYPE FORMAT_VALUETYPE;
-		unsigned int ID, WIDTH, HEIGHT;
-		bool Usable_as_Texture;
-		void* GL_ID;
-	};
-
 	struct GFXAPI Framebuffer {
 		struct RT_SLOT {
 			unsigned int RT_ID, WIDTH, HEIGTH;
@@ -58,14 +47,18 @@ namespace GFX_API {
 		void* GL_ID;
 	};
 
+	/*
+		GLSL uses shader name reflection to get Buffer, so NAME should be the same thing as in the shader
+		Also your global buffers in shaders shouldn't specify binding point, buffer's name should be the NAME here
+	*/
 	struct GFXAPI GFX_Buffer {
-		string NAME;		//GLSL uses shader name reflection to get Buffer, so this is the name used in GLSL
+		string NAME;		
 		unsigned int ID;
 		void* DATA,
-			*GL_ID,			//Buffer's ID to access
+			*GL_ID,			//Buffer's ID given by GL
 			*BINDING_POINT; //Shaders uses binding point to access the buffer, so store it.
 		unsigned int DATA_SIZE;
-		GLOBALBUFFER_USAGE USAGE;
+		BUFFER_VISIBILITY USAGE;
 	};
 
 

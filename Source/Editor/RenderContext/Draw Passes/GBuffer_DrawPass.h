@@ -6,6 +6,7 @@
 
 
 class Main_DrawPass : public GFX_API::DrawPass {
+	const GFX_API::Framebuffer* FB;
 	void Create_LineRendererMatInst();
 	GFX_API::Material_Instance* LineRenderer_MatInst = nullptr;
 public:

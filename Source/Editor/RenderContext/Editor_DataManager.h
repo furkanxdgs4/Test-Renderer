@@ -39,19 +39,19 @@ namespace TuranEditor {
 	};
 
 	class Editor_RendererDataManager {
-		static mat4* CAMERABUFFER_DATA, *WORLDOBJECTs_BUFFERDATA;
-		static void* LIGHTsBUFFER_DATA;
-		static unsigned int WORLDOBJECTs_GLOBALBUFFERID, MATINSTs_GLOBALBUFFERID, CAMERA_GLOBALBUFFERID, LIGHTs_GLOBALBUFFERID,
-			SurfaceMatType_ID;
-
 
 		static Bitset WORLDOBJECT_IDs;
 		static unsigned int Create_OBJECTINDEX();
 		static void Delete_OBJECTINDEX(unsigned int INDEX);
 		static void Load_SurfaceMaterialType();
-
 		static void Load_PointLineMaterialType();
+
 	public:
+		static mat4* CAMERABUFFER_DATA, * WORLDOBJECTs_BUFFERDATA;
+		static void* LIGHTsBUFFER_DATA;
+		static unsigned int WORLDOBJECTs_GLOBALBUFFERID, MATINSTs_GLOBALBUFFERID, CAMERA_GLOBALBUFFERID, LIGHTs_GLOBALBUFFERID,
+			SurfaceMatType_ID;
+
 		static Directional_Light* DIRECTIONALLIGHTs;
 		static Spot_Light* SPOTLIGHTs;
 		static Point_Light* POINTLIGHTs;

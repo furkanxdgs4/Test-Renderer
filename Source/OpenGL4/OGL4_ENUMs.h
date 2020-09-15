@@ -5,14 +5,15 @@
 
 namespace OpenGL4 {
 	unsigned int OGL4_API Find_Texture_Dimension(GFX_API::TEXTURE_DIMENSIONs dimension);
-	unsigned int OGL4_API Find_Texture_Channel_Type(GFX_API::TEXTURE_CHANNELs channel_type);
-	unsigned int OGL4_API Find_Texture_Value_Type(GFX_API::UNIFORMTYPE value_type);
+	unsigned int OGL4_API Find_glTexImage2D_InternalFormat(GFX_API::Texture_Resource* TEXTURE);
+	unsigned int OGL4_API Find_glTexImage2D_Format(GFX_API::Texture_Resource* TEXTURE);
+	unsigned int OGL4_API Find_glTexImage2D_ValueType(GFX_API::TEXTURE_CHANNELs channel_type);
+	unsigned int OGL4_API Find_ImageTexture_InternalFormat(GFX_API::TEXTURE_CHANNELs channel_type);
 	unsigned int OGL4_API Find_Texture_Wrapping(GFX_API::TEXTURE_WRAPPING wrapping);
 	unsigned int OGL4_API Find_Texture_Mipmap_Filtering(GFX_API::TEXTURE_MIPMAPFILTER mipmap_filter);
 
 	unsigned int OGL4_API Find_ShaderStage(GFX_API::SHADER_STAGE shader_stage);
 
-	unsigned int OGL4_API Find_RenderTarget_Format_Type(GFX_API::TEXTURE_TYPEs texture_format);
 	unsigned int OGL4_API Find_RenderTarget_AttachmentType(GFX_API::RT_ATTACHMENTs texture_attachment);
 
 	unsigned int OGL4_API Find_OGLOperationType(GFX_API::OPERATION_TYPE operation_type);
@@ -23,6 +24,6 @@ namespace OpenGL4 {
 
 	unsigned int OGL4_API Find_OGLDepthTest(GFX_API::DEPTH_TESTs depth_test);
 
-	unsigned int OGL4_API Find_BUFFERUSAGE(GFX_API::GLOBALBUFFER_USAGE usage);
+	unsigned int OGL4_API Find_BUFFERUSAGE(GFX_API::BUFFER_VISIBILITY usage);
 	void Check_ActiveFramebuffer_Status(const char* Framebuffer_Name);
 }

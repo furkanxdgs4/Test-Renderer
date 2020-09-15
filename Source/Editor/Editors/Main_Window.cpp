@@ -4,6 +4,7 @@
 #include "Editor/RenderContext/Game_RenderGraph.h"
 #include "GFX/GFX_Core.h"
 #include "Editor/RenderContext/Editor_DataManager.h"
+#include "Editor/RenderContext/Compute Passes/FirstCompute.h"
 
 #include <string>
 
@@ -31,14 +32,39 @@ namespace TuranEditor {
 		//Successfully created the window!
 		Main_Menubar_of_Editor();
 
-		IMGUI->Slider_Vec3("Camera Position", &Editor_RendererDataManager::CameraPos, -1000, 1000);
-		IMGUI->Slider_Vec3("Front Vector", &Editor_RendererDataManager::FrontVec, -1, 1);
-		IMGUI->Slider_Vec3("Directional Light Color", (vec3*)&Editor_RendererDataManager::DIRECTIONALLIGHTs[0].COLOR, 0, 1);
-		IMGUI->Slider_Vec3("First Object World Position", &Editor_RendererDataManager::FirstObjectPosition, -10, 10);
+		if (IMGUI->Begin_TabBar()) {
+			if (IMGUI->Begin_TabItem("Lights")) {
+				IMGUI->Slider_Vec3("Directional Light Color", (vec3*)&Editor_RendererDataManager::DIRECTIONALLIGHTs[0].COLOR, 0, 1);
+				IMGUI->Slider_Vec3("Directional Light Direction", (vec3*)&Editor_RendererDataManager::DIRECTIONALLIGHTs[0].DIRECTION, -1, 1);
+				IMGUI->End_TabItem();
+			}
+			if (IMGUI->Begin_TabItem("Draw Pass")) {
+				IMGUI->Slider_Vec3("Camera Position", &Editor_RendererDataManager::CameraPos, -1000, 1000);
+				IMGUI->Slider_Vec3("Front Vector", &Editor_RendererDataManager::FrontVec, -1, 1);
+				IMGUI->Slider_Vec3("First Object World Position", &Editor_RendererDataManager::FirstObjectPosition, -10, 10);
+				//Display MainDrawPass's Color Buffer
+				{
+					DisplayTexture = GFXContentManager->Find_Framebuffer_byGFXID(((GFX_API::DrawPass*)GameRenderGraph->Get_RenderNodes()[0])->Get_FramebufferID())->BOUND_RTs[0].RT_ID;
+					DisplayWidth = 960;	DisplayHeight = 540;
+				}
+				IMGUI->End_TabItem();
+			}
+			if (IMGUI->Begin_TabItem("Compute Pass")) {
+				IMGUI->Slider_Vec3("Camera Position", &FirstCompute::RAYTRACECAMERA_POS, -10, 10);
+				DisplayTexture = FirstCompute::OUTPUTTEXTURE_ID;
+				DisplayWidth = 512; DisplayHeight = 512;
+				IMGUI->End_TabItem();
+			}
+			if (DisplayTexture) {
+				IMGUI->Display_Texture(DisplayTexture, DisplayWidth, DisplayHeight, true);
+			}
+		}
+
 		if (GameRenderGraph) {
 			GFX->Register_RenderGraph(GameRenderGraph);
-			unsigned int GBUFFERCOLORRT_GFXID = GFXContentManager->Find_Framebuffer_byGFXID(((GFX_API::DrawPass*)GameRenderGraph->Get_RenderNodes()[0])->Get_FramebufferID())->BOUND_RTs[0].RT_ID;
-			IMGUI->Display_RenderTarget(GBUFFERCOLORRT_GFXID, 960, 540, true);
+			//Display FirstCompute's Output Texture
+			{
+			}
 		}
 
 		IMGUI->End_Window();

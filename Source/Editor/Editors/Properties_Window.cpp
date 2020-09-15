@@ -34,7 +34,9 @@ namespace TuranEditor {
 		}
 		else if (RESOURCE->TYPE == RESOURCETYPEs::GFXAPI_TEXTURE) {
 			GFX_API::Texture_Resource* TEXTURE = (GFX_API::Texture_Resource*)RESOURCE->DATA;
-			GFXContentManager->Upload_Texture(TEXTURE, RESOURCE->ID, false);
+			if (!GFXContentManager->Find_GFXTexture_byID(RESOURCE->ID)) {
+				GFXContentManager->Create_Texture(TEXTURE, RESOURCE->ID);
+			}
 		}
 	}
 
@@ -140,12 +142,11 @@ namespace TuranEditor {
 	void ResourceProperties_Window::Show_Texture_Properties() {
 		GFX_API::Texture_Resource* TEXTURE = (GFX_API::Texture_Resource*)RESOURCE->DATA;
 		IMGUI->Text(("ID: " + to_string(RESOURCE->ID)).c_str());
-		IMGUI->Text(GFX_API::Find_UNIFORM_VARTYPE_Name(TEXTURE->Properties.VALUE_TYPE));
 		selected_texturechannelindex = GFX_API::GetIndexOf_TextureCHANNEL(TEXTURE->Properties.CHANNEL_TYPE);
 		if (IMGUI->SelectList_OneLine("Texture Channels", &selected_texturechannelindex, &GFX_API::GetNames_TextureCHANNELs())) {
 			TEXTURE->Properties.CHANNEL_TYPE = GFX_API::GetTextureCHANNEL_byIndex(selected_texturechannelindex);
 			GFXContentManager->Unload_Texture(RESOURCE->ID);
-			GFXContentManager->Upload_Texture(TEXTURE, RESOURCE->ID, false);
+			GFXContentManager->Create_Texture(TEXTURE, RESOURCE->ID);
 		}
 		IMGUI->Display_Texture(RESOURCE->ID, TEXTURE->WIDTH, TEXTURE->HEIGHT);
 	}

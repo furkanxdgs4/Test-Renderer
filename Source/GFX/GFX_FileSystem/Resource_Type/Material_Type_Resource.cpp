@@ -5,7 +5,7 @@ namespace GFX_API {
 
 	//MATERIAL UNIFORM FUNCTIONs
 
-	Material_Uniform::Material_Uniform(const char* variable_name, UNIFORMTYPE variable_type) : VARIABLE_NAME(variable_name), VARIABLE_TYPE(variable_type) {}
+	Material_Uniform::Material_Uniform(const char* variable_name, DATA_TYPE variable_type) : VARIABLE_NAME(variable_name), VARIABLE_TYPE(variable_type) {}
 	Material_Uniform::Material_Uniform() {}
 	//Please keep in mind that: This doesn't verifies if data matches with variable type!
 	bool Material_Uniform::Verify_UniformData() {

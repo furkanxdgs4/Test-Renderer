@@ -43,11 +43,12 @@ namespace OpenGL4 {
 		virtual void Unload_PointBuffer(unsigned int PointBuffer_ID) override;
 
 
-		virtual void Upload_Texture(GFX_API::Texture_Resource* TEXTURE_ASSET, unsigned int Asset_ID, bool Generate_Mipmap) override;
-		virtual void Unload_Texture(unsigned int ASSET_ID);
+		virtual void Create_Texture(GFX_API::Texture_Resource* TEXTURE_ASSET, unsigned int Asset_ID) override;
+		virtual void Upload_Texture(unsigned int Asset_ID, void* DATA, unsigned int DATA_SIZE) override;
+		virtual void Unload_Texture(unsigned int ASSET_ID) override;
 
 
-		virtual unsigned int Create_GlobalBuffer(const char* BUFFER_NAME, void* DATA, unsigned int DATA_SIZE, GFX_API::GLOBALBUFFER_USAGE USAGE) override;
+		virtual unsigned int Create_GlobalBuffer(const char* BUFFER_NAME, void* DATA, unsigned int DATA_SIZE, GFX_API::BUFFER_VISIBILITY USAGE) override;
 		virtual void Upload_GlobalBuffer(unsigned int BUFFER_ID, void* DATA = nullptr, unsigned int DATA_SIZE = 0) override;
 		virtual void Unload_GlobalBuffer(unsigned int BUFFER_ID) override;
 
@@ -58,11 +59,6 @@ namespace OpenGL4 {
 		virtual void Delete_ComputeShader(unsigned int ASSET_ID) override;
 		virtual void Link_MaterialType(GFX_API::Material_Type* MATTYPE_ASSET, unsigned int Asset_ID, string* compilation_status) override;
 		virtual void Delete_MaterialType(unsigned int Asset_ID) override;
-
-
-		virtual unsigned int Create_RenderTarget(unsigned int WIDTH, unsigned int HEIGTH, GFX_API::TEXTURE_DIMENSIONs DIMENSION,
-			GFX_API::TEXTURE_TYPEs FORMAT, GFX_API::UNIFORMTYPE FORMAT_VALUETYPE, bool Usable_as_Texture) override;
-		virtual void Delete_RenderTarget(unsigned int RT_ID) override;
 
 
 		virtual unsigned int Create_Framebuffer() override;

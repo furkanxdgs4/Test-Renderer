@@ -117,7 +117,7 @@ namespace GFX_API {
 
 
 
-	GPU_ContentManager::GPU_ContentManager() : MESHID_BITSET(1000), POINTBUFFERID_BITSET(1000), BUFFERID_BITSET(100), RTID_BITSET(20), FBID_BITSET(30){
+	GPU_ContentManager::GPU_ContentManager() : MESHID_BITSET(1000), POINTBUFFERID_BITSET(1000), BUFFERID_BITSET(100), FBID_BITSET(30){
 
 	}
 
@@ -150,14 +150,6 @@ namespace GFX_API {
 	}
 	void GPU_ContentManager::Delete_GlobalBufferID(unsigned int ID) {
 		BUFFERID_BITSET.SetBit_False(ID - 1);
-	}
-	unsigned int GPU_ContentManager::Create_RenderTargetID() {
-		unsigned int ID = RTID_BITSET.GetIndex_FirstFalse() + 1;
-		RTID_BITSET.SetBit_True(ID - 1);
-		return ID;
-	}
-	void GPU_ContentManager::Delete_RenderTargetID(unsigned int ID) {
-		RTID_BITSET.SetBit_False(ID - 1);
 	}
 	unsigned int GPU_ContentManager::Create_FrameBufferID() {
 		unsigned int ID = FBID_BITSET.GetIndex_FirstFalse() + 1;
@@ -214,18 +206,6 @@ namespace GFX_API {
 			}
 		}
 		TuranAPI::LOG_WARNING("Intended Framebuffer isn't found in GPU_ContentManager!");
-	}
-	GFX_API::RenderTarget* GPU_ContentManager::Find_RenderTarget_byID(unsigned int RT_ID, unsigned int* vector_index) {
-		for (unsigned int i = 0; i < RTs.size(); i++) {
-			GFX_API::RenderTarget& RT = RTs[i];
-			if (RT.ID == RT_ID) {
-				if (vector_index) {
-					*vector_index = i;
-				}
-				return &RT;
-			}
-		}
-		TuranAPI::LOG_WARNING("Intended Render Target isn't found in GPU_ContentManager!");
 	}
 	GFX_Texture* GPU_ContentManager::Find_GFXTexture_byID(unsigned int Texture_AssetID, unsigned int* vector_index) {
 		for (unsigned int i = 0; i < TEXTUREs.size(); i++) {

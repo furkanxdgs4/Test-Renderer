@@ -2,6 +2,7 @@
 #include "GFX/GFX_Includes.h"
 #include "GFX_RenderCommands.h"
 #include "GFX_Resource.h"
+#include "GFX/GFX_FileSystem/Resource_Type/Material_Type_Resource.h"
 #include "GFX/GFX_ENUMs.h"
 
 namespace GFX_API {
@@ -17,9 +18,6 @@ namespace GFX_API {
 	//4) Don't forget to give a name to the draw pass! It will show up in Framegraph, Debugging and Profiling!
 	class GFXAPI DrawPass : public RenderNode {
 	protected:
-		friend class Renderer;
-		friend class OGL4_Renderer;
-
 		//These vectors store indexes to the RenderGraph's vectors!
 		vector<unsigned int> DrawCallBuffer;
 		const vector<DrawCall>& RG_DrawCallBuffer;
@@ -42,6 +40,13 @@ namespace GFX_API {
 
 		const char* Get_Name();
 		unsigned int Get_FramebufferID();
+	};
+
+	class GFXAPI ComputePass : public RenderNode {
+	protected:
+		vector<ComputeShader_Instance*> ComputeShaders;
+	public:
+		virtual void Execute() = 0;
 	};
 
 

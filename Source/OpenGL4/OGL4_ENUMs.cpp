@@ -7,6 +7,9 @@ using namespace TuranAPI;
 using namespace GFX_API;
 
 namespace OpenGL4 {
+	unsigned int OGL4_API Find_RTTexture_FormatChannel(GFX_API::TEXTURE_CHANNELs channel_type);
+	unsigned int OGL4_API Find_SamplerTexture_Format(TEXTURE_CHANNELs channels);
+
 	unsigned int Find_Texture_Dimension(TEXTURE_DIMENSIONs dimension) {
 		switch (dimension) {
 		case TEXTURE_DIMENSIONs::TEXTURE_2D:
@@ -17,54 +20,160 @@ namespace OpenGL4 {
 		}
 	}
 
-	unsigned int Find_Texture_Format(TEXTURE_CHANNELs channels) {
+
+	unsigned int OGL4_API Find_glTexImage2D_InternalFormat(GFX_API::Texture_Resource* TEXTURE) {
+		//Image or Render Target Texture
+		if (TEXTURE->OP_TYPE == BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADWRITE) {
+			switch (TEXTURE->Properties.TYPE) {
+			case TEXTURE_TYPEs::COLORRT_TEXTURE:
+			case TEXTURE_TYPEs::DEPTHTEXTURE:
+			case TEXTURE_TYPEs::DEPTHSTENCIL:
+				return Find_RTTexture_FormatChannel(TEXTURE->Properties.CHANNEL_TYPE);
+			case TEXTURE_TYPEs::COLOR_TEXTURE:
+			case TEXTURE_TYPEs::OPACITYTEXTURE:
+				return Find_ImageTexture_InternalFormat(TEXTURE->Properties.CHANNEL_TYPE);
+			default:
+				TuranAPI::LOG_ERROR("Find_glTexImage2D_InternalFormat doesn't support this Texture_Type!");
+			}
+		}
+		//Sampler Texture
+		else if (TEXTURE->OP_TYPE == BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADONLY) {
+			return Find_SamplerTexture_Format(TEXTURE->Properties.CHANNEL_TYPE);
+		}
+		TuranAPI::LOG_ERROR("Find_glTexImage2D_InternalFormat doesn't support this BUFFER_VISIBILITY!");
+	}
+	unsigned int OGL4_API Find_glTexImage2D_Format(GFX_API::Texture_Resource* TEXTURE) {
+		//Image or Render Target Texture
+		if (TEXTURE->OP_TYPE == BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADWRITE) {
+			switch (TEXTURE->Properties.TYPE) {
+			case TEXTURE_TYPEs::COLORRT_TEXTURE:
+			case TEXTURE_TYPEs::DEPTHTEXTURE:
+			case TEXTURE_TYPEs::DEPTHSTENCIL:
+				return Find_RTTexture_FormatChannel(TEXTURE->Properties.CHANNEL_TYPE);
+			case TEXTURE_TYPEs::COLOR_TEXTURE:
+			case TEXTURE_TYPEs::OPACITYTEXTURE:
+				return Find_SamplerTexture_Format(TEXTURE->Properties.CHANNEL_TYPE);
+			default:
+				TuranAPI::LOG_ERROR("Find_glTexImage2D_InternalFormat doesn't support this Texture_Type!");
+			}
+		}
+		//Sampler Texture
+		else if (TEXTURE->OP_TYPE == BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADONLY) {
+			return Find_SamplerTexture_Format(TEXTURE->Properties.CHANNEL_TYPE);
+		}
+		TuranAPI::LOG_ERROR("Find_glTexImage2D_InternalFormat doesn't support this BUFFER_VISIBILITY!");
+	}
+
+
+	unsigned int Find_SamplerTexture_Format(TEXTURE_CHANNELs channels) {
 		switch (channels) {
-		case TEXTURE_CHANNELs::API_TEXTURE_RGB:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGB32F:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGB32I:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGB32UI:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGB8B:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGB8UB:
 			return GL_RGB;
-		case TEXTURE_CHANNELs::API_TEXTURE_RGBA:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32F:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32I:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32UI:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA8B:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA8UB:
 			return GL_RGBA;
-		case TEXTURE_CHANNELs::API_TEXTURE_ALPHA:
+		case TEXTURE_CHANNELs::API_TEXTURE_R32F:
+		case TEXTURE_CHANNELs::API_TEXTURE_R32I:
+		case TEXTURE_CHANNELs::API_TEXTURE_R32UI:
+		case TEXTURE_CHANNELs::API_TEXTURE_R8B:
+		case TEXTURE_CHANNELs::API_TEXTURE_R8UB:
 			return GL_ALPHA;
+		case TEXTURE_CHANNELs::API_TEXTURE_RA32F:
+		case TEXTURE_CHANNELs::API_TEXTURE_RA32I:
+		case TEXTURE_CHANNELs::API_TEXTURE_RA32UI:
+		case TEXTURE_CHANNELs::API_TEXTURE_RA8B:
+		case TEXTURE_CHANNELs::API_TEXTURE_RA8UB:
+			return GL_RG;
 		default:
-			LOG_CRASHING("Intended Texture Format isn't supported by OpenGL4 for now!");
+			LOG_CRASHING("Intended texture channel type isn't supported by OpenGL4::Find_glTexImage2D_ChannelType for now!");
 			return NULL;
 		}
 	}
 
-	unsigned int Find_Texture_Channel_Type(TEXTURE_CHANNELs channel_type) {
-		switch (channel_type) {
-		case TEXTURE_CHANNELs::API_TEXTURE_RGB:
-			return GL_RGB;
-		case TEXTURE_CHANNELs::API_TEXTURE_RGBA:
+	unsigned int Find_RTTexture_FormatChannel(TEXTURE_CHANNELs channels) {
+		switch (channels) {
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32F:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32I:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32UI:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA8B:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA8UB:
 			return GL_RGBA;
-		case TEXTURE_CHANNELs::API_TEXTURE_ALPHA:
-			return GL_ALPHA;
-		case TEXTURE_CHANNELs::API_TEXTURE_RA:
-			return GL_RG;
+		case TEXTURE_CHANNELs::API_TEXTURE_R32F:
+		case TEXTURE_CHANNELs::API_TEXTURE_R32I:
+		case TEXTURE_CHANNELs::API_TEXTURE_R32UI:
+		case TEXTURE_CHANNELs::API_TEXTURE_R8B:
+		case TEXTURE_CHANNELs::API_TEXTURE_R8UB:
+			return GL_DEPTH_COMPONENT;
+		default:
+			LOG_CRASHING("Intended texture channel type isn't supported by OpenGL4::Find_glTexImage2D_FormatType for now!");
+			return NULL;
+		}
+	}
+
+	unsigned int Find_ImageTexture_InternalFormat(TEXTURE_CHANNELs channels) {
+		switch (channels) {
 		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32F:
 			return GL_RGBA32F;
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32I:
+			return GL_RGBA32I;
 		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32UI:
 			return GL_RGBA32UI;
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA8B:
+			return GL_RGBA8I;
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA8UB:
+			return GL_RGBA8UI;
+		case TEXTURE_CHANNELs::API_TEXTURE_R32F:
+			return GL_R32F;
+		case TEXTURE_CHANNELs::API_TEXTURE_R32I:
+			return GL_R32I;
+		case TEXTURE_CHANNELs::API_TEXTURE_R32UI:
+			return GL_R32UI;
+		case TEXTURE_CHANNELs::API_TEXTURE_R8B:
+			return GL_R8I;
+		case TEXTURE_CHANNELs::API_TEXTURE_R8UB:
+			return GL_R8UI;
 		default:
-			LOG_CRASHING("Intended texture channel type isn't supported by OpenGL4 for now!");
+			LOG_CRASHING("Intended texture channel type isn't supported by OpenGL4::Find_glTexImage2D_FormatType for now!");
 			return NULL;
 		}
 	}
 
-	unsigned int Find_Texture_Value_Type(UNIFORMTYPE value_type) {
-		switch (value_type) {
-		case UNIFORMTYPE::VAR_UBYTE8:
+	unsigned int OGL4_API Find_glTexImage2D_ValueType(GFX_API::TEXTURE_CHANNELs channel_type) {
+		switch (channel_type) {
+		case TEXTURE_CHANNELs::API_TEXTURE_R8UB:
+		case TEXTURE_CHANNELs::API_TEXTURE_RA8UB:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGB8UB:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA8UB:
 			return GL_UNSIGNED_BYTE;
-		case UNIFORMTYPE::VAR_BYTE8:
+		case TEXTURE_CHANNELs::API_TEXTURE_R8B:
+		case TEXTURE_CHANNELs::API_TEXTURE_RA8B:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGB8B:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA8B:
 			return GL_BYTE;
-		case UNIFORMTYPE::VAR_UINT32:
-			return GL_UNSIGNED_INT;
-		case UNIFORMTYPE::VAR_INT32:
-			return GL_INT;
-		case UNIFORMTYPE::VAR_FLOAT32:
+		case TEXTURE_CHANNELs::API_TEXTURE_R32F:
+		case TEXTURE_CHANNELs::API_TEXTURE_RA32F:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGB32F:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32F:
 			return GL_FLOAT;
+		case TEXTURE_CHANNELs::API_TEXTURE_R32UI:
+		case TEXTURE_CHANNELs::API_TEXTURE_RA32UI:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGB32UI:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32UI:
+			return GL_UNSIGNED_INT;
+		case TEXTURE_CHANNELs::API_TEXTURE_R32I:
+		case TEXTURE_CHANNELs::API_TEXTURE_RA32I:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGB32I:
+		case TEXTURE_CHANNELs::API_TEXTURE_RGBA32I:
+			return GL_INT;
 		default:
-			LOG_CRASHING("Intended Texture Value Type isn't supported by OpenGL4 for now!");
+			LOG_CRASHING("Intended texture value type isn't supported by OpenGL4::Find_glTexImage2D_ValueType for now!");
 			return NULL;
 		}
 	}
@@ -111,19 +220,6 @@ namespace OpenGL4 {
 	}
 
 
-	unsigned int Find_RenderTarget_Format_Type(TEXTURE_TYPEs texture_format) {
-		switch (texture_format) {
-		case TEXTURE_TYPEs::COLORTEXTURE:
-			return GL_RGBA;
-		case TEXTURE_TYPEs::DEPTHTEXTURE:
-			return GL_DEPTH_COMPONENT;
-		case TEXTURE_TYPEs::DEPTHSTENCIL:
-			return GL_DEPTH_STENCIL;
-		default:
-			LOG_CRASHING("Intended Render Target format isn't supported by OpenGL4 for now!", true);
-			return NULL;
-		}
-	}
 	unsigned int Find_RenderTarget_AttachmentType(RT_ATTACHMENTs attachment_type) {
 		switch (attachment_type) {
 		case RT_ATTACHMENTs::TEXTURE_ATTACHMENT_COLOR0:
@@ -236,22 +332,17 @@ int ENGINE Convert_MouseButton_to_GLFW_Key(MOUSE_BUTTONs Mouse_Button) {
 	
 
 
-	unsigned int OGL4_API Find_BUFFERUSAGE(GFX_API::GLOBALBUFFER_USAGE usage) {
+	unsigned int OGL4_API Find_BUFFERUSAGE(GFX_API::BUFFER_VISIBILITY usage) {
 		switch (usage) {
-		case GLOBALBUFFER_USAGE::CPUWRITE_GPUREAD_FREQUENT:
-			return GL_DYNAMIC_DRAW;
-		case GLOBALBUFFER_USAGE::CPUWRITE_GPUREAD_RARE:
+		case BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADONLY:
+		case BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADWRITE:
+		case BUFFER_VISIBILITY::CPUREADONLY_GPUREADWRITE:
 			return GL_STATIC_DRAW;
-		case GLOBALBUFFER_USAGE::CPUREAD_GPUWRITE_FREQUENT:
-			return GL_DYNAMIC_READ;
-		case GLOBALBUFFER_USAGE::CPUREAD_GPUWRITE_RARE:
-			return GL_STATIC_READ;
-		case GLOBALBUFFER_USAGE::GPUREADWRITE_FREQUENT:
-			return GL_DYNAMIC_COPY;
-		case GLOBALBUFFER_USAGE::GPUREADWRITE_RARE:
-			return GL_STATIC_COPY;
+		case BUFFER_VISIBILITY::CPUREADWRITE_GPUREADONLY:
+		case BUFFER_VISIBILITY::CPUREADWRITE_GPUREADWRITE:
+			return GL_DYNAMIC_DRAW;
 		default:
-			TuranAPI::LOG_ERROR("Find_BUFFERUSAGE doesn't support this usage!");
+			TuranAPI::LOG_NOTCODED("Find_BUFFERUSAGE doesn't support this usage!", true);
 		}
 	}
 

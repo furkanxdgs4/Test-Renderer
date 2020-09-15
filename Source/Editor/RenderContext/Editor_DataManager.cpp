@@ -43,7 +43,7 @@ namespace TuranEditor {
 		{
 			Material_Uniform Object_Index;
 			Object_Index.VARIABLE_NAME = "OBJECT_INDEX";
-			Object_Index.VARIABLE_TYPE = GFX_API::UNIFORMTYPE::VAR_UINT32;
+			Object_Index.VARIABLE_TYPE = GFX_API::DATA_TYPE::VAR_UINT32;
 			Object_Index.DATA = nullptr;
 			Surface_MatType->UNIFORMs.push_back(Object_Index);
 		}
@@ -51,19 +51,18 @@ namespace TuranEditor {
 		{
 			Texture_Access DIFFUSE_TEXTURE;
 			DIFFUSE_TEXTURE.DIMENSIONs = TEXTURE_DIMENSIONs::TEXTURE_2D;
-			DIFFUSE_TEXTURE.CHANNELs = TEXTURE_CHANNELs::API_TEXTURE_RGB;
+			DIFFUSE_TEXTURE.CHANNELs = TEXTURE_CHANNELs::API_TEXTURE_RGB8UB;
 			DIFFUSE_TEXTURE.OP_TYPE = OPERATION_TYPE::READ_ONLY;
 			DIFFUSE_TEXTURE.ACCESS_TYPE = TEXTURE_ACCESS::SAMPLER_OPERATION;
 			DIFFUSE_TEXTURE.BINDING_POINT = 0;
 			DIFFUSE_TEXTURE.TEXTURE_ID = 0;
 			Surface_MatType->TEXTUREs.push_back(DIFFUSE_TEXTURE);
-
 		}
 		//NORMALSTEXTURE uniform
 		{
 			Texture_Access NORMALSTEXTURE;
 			NORMALSTEXTURE.DIMENSIONs = TEXTURE_DIMENSIONs::TEXTURE_2D;
-			NORMALSTEXTURE.CHANNELs = TEXTURE_CHANNELs::API_TEXTURE_RGB;
+			NORMALSTEXTURE.CHANNELs = TEXTURE_CHANNELs::API_TEXTURE_RGB8UB;
 			NORMALSTEXTURE.OP_TYPE = OPERATION_TYPE::READ_ONLY;
 			NORMALSTEXTURE.ACCESS_TYPE = TEXTURE_ACCESS::SAMPLER_OPERATION;
 			NORMALSTEXTURE.BINDING_POINT = 1;
@@ -74,7 +73,7 @@ namespace TuranEditor {
 		{
 			Texture_Access SPECULARTEXTURE;
 			SPECULARTEXTURE.DIMENSIONs = TEXTURE_DIMENSIONs::TEXTURE_2D;
-			SPECULARTEXTURE.CHANNELs = TEXTURE_CHANNELs::API_TEXTURE_RGB;
+			SPECULARTEXTURE.CHANNELs = TEXTURE_CHANNELs::API_TEXTURE_RGB8UB;
 			SPECULARTEXTURE.OP_TYPE = OPERATION_TYPE::READ_ONLY;
 			SPECULARTEXTURE.ACCESS_TYPE = TEXTURE_ACCESS::SAMPLER_OPERATION;
 			SPECULARTEXTURE.BINDING_POINT = 2;
@@ -85,7 +84,7 @@ namespace TuranEditor {
 		{
 			Texture_Access OPACITYTEXTURE;
 			OPACITYTEXTURE.DIMENSIONs = TEXTURE_DIMENSIONs::TEXTURE_2D;
-			OPACITYTEXTURE.CHANNELs = TEXTURE_CHANNELs::API_TEXTURE_RGB;
+			OPACITYTEXTURE.CHANNELs = TEXTURE_CHANNELs::API_TEXTURE_RGB8UB;
 			OPACITYTEXTURE.OP_TYPE = OPERATION_TYPE::READ_ONLY;
 			OPACITYTEXTURE.ACCESS_TYPE = TEXTURE_ACCESS::SAMPLER_OPERATION;
 			OPACITYTEXTURE.BINDING_POINT = 3;
@@ -107,11 +106,11 @@ namespace TuranEditor {
 			view_mat = lookAt(CameraPos, FrontVec + CameraPos, vec3(0, 1, 0));
 			CAMERABUFFER_DATA[0] = proj_mat;
 			CAMERABUFFER_DATA[1] = view_mat;
-			CAMERA_GLOBALBUFFERID = GFXContentManager->Create_GlobalBuffer("VIEW_MATRICES", CAMERABUFFER_DATA, 128, GFX_API::GLOBALBUFFER_USAGE::CPUREAD_GPUWRITE_FREQUENT);
+			CAMERA_GLOBALBUFFERID = GFXContentManager->Create_GlobalBuffer("VIEW_MATRICES", CAMERABUFFER_DATA, 128, GFX_API::BUFFER_VISIBILITY::CPUREADWRITE_GPUREADWRITE);
 		}
 		//World Objects Matrices Buffer
 		{
-			WORLDOBJECTs_GLOBALBUFFERID = GFXContentManager->Create_GlobalBuffer("MODEL_MATRICES", WORLDOBJECTs_BUFFERDATA, 16000, GFX_API::GLOBALBUFFER_USAGE::CPUREAD_GPUWRITE_FREQUENT);
+			WORLDOBJECTs_GLOBALBUFFERID = GFXContentManager->Create_GlobalBuffer("MODEL_MATRICES", WORLDOBJECTs_BUFFERDATA, 16000, GFX_API::BUFFER_VISIBILITY::CPUREADWRITE_GPUREADWRITE);
 		}
 		//Lights Buffer
 		{
@@ -121,7 +120,7 @@ namespace TuranEditor {
 			memcpy((char*)LIGHTsBUFFER_DATA + 352, &DIRECTIONALLIGHTs_COUNT, 4);
 			memcpy((char*)LIGHTsBUFFER_DATA + 356, &POINTLIGHTs_COUNT, 4);
 			memcpy((char*)LIGHTsBUFFER_DATA + 360, &SPOTLIGHTs_COUNT, 4);
-			LIGHTs_GLOBALBUFFERID = GFXContentManager->Create_GlobalBuffer("LIGHTs", LIGHTsBUFFER_DATA, 364, GFX_API::GLOBALBUFFER_USAGE::CPUREAD_GPUWRITE_RARE);
+			LIGHTs_GLOBALBUFFERID = GFXContentManager->Create_GlobalBuffer("LIGHTs", LIGHTsBUFFER_DATA, 364, GFX_API::BUFFER_VISIBILITY::CPUREADWRITE_GPUREADWRITE);
 		}
 
 		//GLOBAL BUFFER BINDING
@@ -136,10 +135,10 @@ namespace TuranEditor {
 			CAMERA_ACCESS.BUFFER_ID = CAMERA_GLOBALBUFFERID;
 			Surface_MatType->GLOBALBUFFERs.push_back(CAMERA_ACCESS);
 
-			GlobalBuffer_Access LIGTs_ACCESS;
-			LIGTs_ACCESS.ACCESS_TYPE = OPERATION_TYPE::READ_ONLY;
-			LIGTs_ACCESS.BUFFER_ID = LIGHTs_GLOBALBUFFERID;
-			Surface_MatType->GLOBALBUFFERs.push_back(LIGTs_ACCESS);
+			GlobalBuffer_Access LIGHTs_ACCESS;
+			LIGHTs_ACCESS.ACCESS_TYPE = OPERATION_TYPE::READ_ONLY;
+			LIGHTs_ACCESS.BUFFER_ID = LIGHTs_GLOBALBUFFERID;
+			Surface_MatType->GLOBALBUFFERs.push_back(LIGHTs_ACCESS);
 		}
 
 
@@ -204,7 +203,7 @@ namespace TuranEditor {
 		{
 			Material_Uniform Object_Index;
 			Object_Index.VARIABLE_NAME = "OBJECT_INDEX";
-			Object_Index.VARIABLE_TYPE = GFX_API::UNIFORMTYPE::VAR_UINT32;
+			Object_Index.VARIABLE_TYPE = GFX_API::DATA_TYPE::VAR_UINT32;
 			Object_Index.DATA = nullptr;
 			PointLineMaterial->UNIFORMs.push_back(Object_Index);
 		}
@@ -212,7 +211,7 @@ namespace TuranEditor {
 		{
 			Material_Uniform PointLightIndex;
 			PointLightIndex.VARIABLE_NAME = "POINTLIGHT_INDEX";
-			PointLightIndex.VARIABLE_TYPE = GFX_API::UNIFORMTYPE::VAR_UINT32;
+			PointLightIndex.VARIABLE_TYPE = GFX_API::DATA_TYPE::VAR_UINT32;
 			PointLightIndex.DATA = nullptr;
 			PointLineMaterial->UNIFORMs.push_back(PointLightIndex);
 		}
@@ -220,7 +219,7 @@ namespace TuranEditor {
 		{
 			Material_Uniform SpotLightIndex;
 			SpotLightIndex.VARIABLE_NAME = "SPOTLIGHT_INDEX";
-			SpotLightIndex.VARIABLE_TYPE = GFX_API::UNIFORMTYPE::VAR_UINT32;
+			SpotLightIndex.VARIABLE_TYPE = GFX_API::DATA_TYPE::VAR_UINT32;
 			SpotLightIndex.DATA = nullptr;
 			PointLineMaterial->UNIFORMs.push_back(SpotLightIndex);
 		}
@@ -228,7 +227,7 @@ namespace TuranEditor {
 		{
 			Material_Uniform POINTCOLOR;
 			POINTCOLOR.VARIABLE_NAME = "POINTCOLOR";
-			POINTCOLOR.VARIABLE_TYPE = GFX_API::UNIFORMTYPE::VAR_VEC3;
+			POINTCOLOR.VARIABLE_TYPE = GFX_API::DATA_TYPE::VAR_VEC3;
 			POINTCOLOR.DATA = nullptr;
 			PointLineMaterial->UNIFORMs.push_back(POINTCOLOR);
 		}
@@ -236,7 +235,7 @@ namespace TuranEditor {
 		{
 			Material_Uniform POINTSIZE;
 			POINTSIZE.VARIABLE_NAME = "POINT_SIZE";
-			POINTSIZE.VARIABLE_TYPE = GFX_API::UNIFORMTYPE::VAR_FLOAT32;
+			POINTSIZE.VARIABLE_TYPE = GFX_API::DATA_TYPE::VAR_FLOAT32;
 			POINTSIZE.DATA = nullptr;
 			PointLineMaterial->UNIFORMs.push_back(POINTSIZE);
 		}
@@ -334,28 +333,31 @@ namespace TuranEditor {
 				}
 			}
 			for (unsigned int i = 0; i < MATINST->TEXTURE_LIST.size(); i++) {
+				if (MATINST->TEXTURE_LIST[i].ACCESS_TYPE != TEXTURE_ACCESS::SAMPLER_OPERATION) {
+					continue;
+				}
 				//DIFFUSE
 				if (MATINST->TEXTURE_LIST[i].BINDING_POINT == 0 && MaterialInstance_Properties.DIFFUSETEXTURE_ID) {
 					Texture_Resource* TEXTURE_ASSET = (Texture_Resource*)EDITOR_FILESYSTEM->Find_ResourceIdentifier_byID(MaterialInstance_Properties.DIFFUSETEXTURE_ID)->DATA;
-					GFXContentManager->Upload_Texture(TEXTURE_ASSET, MaterialInstance_Properties.DIFFUSETEXTURE_ID, true);
+					GFXContentManager->Create_Texture(TEXTURE_ASSET, MaterialInstance_Properties.DIFFUSETEXTURE_ID);
 					MATINST->TEXTURE_LIST[i].TEXTURE_ID = MaterialInstance_Properties.DIFFUSETEXTURE_ID;
 				}
 				//NORMALs
 				else if (MATINST->TEXTURE_LIST[i].BINDING_POINT == 1 && MaterialInstance_Properties.NORMALSTEXTURE_ID) {
 					Texture_Resource* TEXTURE_ASSET = (Texture_Resource*)EDITOR_FILESYSTEM->Find_ResourceIdentifier_byID(MaterialInstance_Properties.NORMALSTEXTURE_ID)->DATA;
-					GFXContentManager->Upload_Texture(TEXTURE_ASSET, MaterialInstance_Properties.NORMALSTEXTURE_ID, true);
+					GFXContentManager->Create_Texture(TEXTURE_ASSET, MaterialInstance_Properties.NORMALSTEXTURE_ID);
 					MATINST->TEXTURE_LIST[i].TEXTURE_ID = MaterialInstance_Properties.NORMALSTEXTURE_ID;
 				}
 				//SPECULAR
 				else if (MATINST->TEXTURE_LIST[i].BINDING_POINT == 2 && MaterialInstance_Properties.SPECULARTEXTURE_ID) {
 					Texture_Resource* TEXTURE_ASSET = (Texture_Resource*)EDITOR_FILESYSTEM->Find_ResourceIdentifier_byID(MaterialInstance_Properties.SPECULARTEXTURE_ID)->DATA;
-					GFXContentManager->Upload_Texture(TEXTURE_ASSET, MaterialInstance_Properties.SPECULARTEXTURE_ID, true);
+					GFXContentManager->Create_Texture(TEXTURE_ASSET, MaterialInstance_Properties.SPECULARTEXTURE_ID);
 					MATINST->TEXTURE_LIST[i].TEXTURE_ID = MaterialInstance_Properties.SPECULARTEXTURE_ID;
 				}
 				//OPACITY
 				else if (MATINST->TEXTURE_LIST[i].BINDING_POINT == 3 && MaterialInstance_Properties.OPACITYTEXTURE_ID) {
 					Texture_Resource* TEXTURE_ASSET = (Texture_Resource*)EDITOR_FILESYSTEM->Find_ResourceIdentifier_byID(MaterialInstance_Properties.OPACITYTEXTURE_ID)->DATA;
-					GFXContentManager->Upload_Texture(TEXTURE_ASSET, MaterialInstance_Properties.OPACITYTEXTURE_ID, true);
+					GFXContentManager->Create_Texture(TEXTURE_ASSET, MaterialInstance_Properties.OPACITYTEXTURE_ID);
 					MATINST->TEXTURE_LIST[i].TEXTURE_ID = MaterialInstance_Properties.OPACITYTEXTURE_ID;
 				}
 			}

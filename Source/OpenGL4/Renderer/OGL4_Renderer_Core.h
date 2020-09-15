@@ -1,20 +1,23 @@
 #pragma once
 #include "OpenGL4/OGL4_ENUMs.h"
 #include "OpenGL4/OpenGL4_Includes.h"
+#include "GFX/Renderer/GFX_Renderer.h"
 
 namespace OpenGL4 {
 	class OGL4_API OpenGL4_Renderer : public GFX_API::Renderer {
+		void Bind_ComputeInstance(const GFX_API::ComputeShader_Instance* CS);
 	protected:
 		friend class OpenGL4_Core;
 
-		virtual void Bind_Framebuffer(unsigned int FB_ID) override;
 		virtual void Bind_MatInstance(GFX_API::Material_Instance* MATINST) override;
 		virtual void Set_DepthTest(GFX_API::DEPTH_MODEs MODE, GFX_API::DEPTH_TESTs TEST) override;
 		virtual void Set_CullingMode(GFX_API::CULL_MODE MODE) override;
 		virtual void Set_LineWidth(float WIDTH) override;
-		virtual void DrawTriangle(unsigned int MeshBuffer_ID) override;
-		virtual void DrawPoint(unsigned int PointBuffer_ID) override;
-		virtual void DrawLine(unsigned int PointBuffer_ID) override;
+		virtual void Bind_Framebuffer(const GFX_API::Framebuffer* FB) override;
+		virtual void DrawTriangle(const GFX_API::GFX_Mesh* MESH) override;
+		virtual void DrawPoint(const GFX_API::GFX_Point* POINT) override;
+		virtual void DrawLine(const GFX_API::GFX_Point* POINT) override;
+		virtual void Compute_Dispatch(const GFX_API::ComputeShader_Instance* CS, vec3 Dispatch_Groups) override;
 		//SOME OF THE BELOW FUNCTIONS SHOULD GO SOME OTHER SYSTEMS BECAUSE RENDERER WILL BE ONLY RESPONSIBLE FOR CONVERTING RENDERGRAPH'S CALLS TO REAL GL CALLS
 
 

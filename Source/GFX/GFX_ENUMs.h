@@ -7,12 +7,12 @@
 //For example; GFX_TEXTURE_2D data type here, should be converted to GL_TEXTURE_2D in OGL3_ENUMs.h
 namespace GFX_API {
 	//Variable Types!
-	enum class UNIFORMTYPE : unsigned char {
+	enum class DATA_TYPE : unsigned char {
 		VAR_UBYTE8 = 0, VAR_BYTE8, VAR_UINT32, VAR_INT32, VAR_FLOAT32,
 		VAR_VEC2, VAR_VEC3, VAR_VEC4, VAR_MAT4x4
 	};
-	GFXAPI unsigned int Get_UNIFORMTYPEs_SIZEinbytes(UNIFORMTYPE uniform);
-	GFXAPI const char* Find_UNIFORM_VARTYPE_Name(UNIFORMTYPE uniform_var_type);
+	GFXAPI unsigned int Get_UNIFORMTYPEs_SIZEinbytes(DATA_TYPE uniform);
+	GFXAPI const char* Find_UNIFORM_VARTYPE_Name(DATA_TYPE uniform_var_type);
 
 	enum class RT_ATTACHMENTs : unsigned char {
 		TEXTURE_ATTACHMENT_COLOR0,
@@ -81,13 +81,29 @@ namespace GFX_API {
 	GFXAPI TEXTURE_WRAPPING GetTextureWRAPPING_byIndex(unsigned int Index);
 
 	enum class TEXTURE_CHANNELs : unsigned char {
-		API_TEXTURE_RGB,
-		API_TEXTURE_RGBA,
-		API_TEXTURE_ALPHA,
-		API_TEXTURE_RA,
-		//FOR IMAGE OPERATIONs
 		API_TEXTURE_RGBA32F,
-		API_TEXTURE_RGBA32UI
+		API_TEXTURE_RGBA32UI,
+		API_TEXTURE_RGBA32I,
+		API_TEXTURE_RGBA8UB,
+		API_TEXTURE_RGBA8B,
+
+		API_TEXTURE_RGB32F,
+		API_TEXTURE_RGB32UI,
+		API_TEXTURE_RGB32I,
+		API_TEXTURE_RGB8UB,
+		API_TEXTURE_RGB8B,
+
+		API_TEXTURE_RA32F,
+		API_TEXTURE_RA32UI,
+		API_TEXTURE_RA32I,
+		API_TEXTURE_RA8UB,
+		API_TEXTURE_RA8B,
+
+		API_TEXTURE_R32F,
+		API_TEXTURE_R32UI,
+		API_TEXTURE_R32I,
+		API_TEXTURE_R8UB,
+		API_TEXTURE_R8B
 	};
 	GFXAPI const char* GetNameOf_TextureCHANNELs(TEXTURE_CHANNELs CHANNEL);
 	GFXAPI vector<const char*> GetNames_TextureCHANNELs();
@@ -95,10 +111,19 @@ namespace GFX_API {
 	GFXAPI unsigned int GetIndexOf_TextureCHANNEL(TEXTURE_CHANNELs CHANNEL);
 
 	enum class TEXTURE_TYPEs: unsigned char {
-		COLORTEXTURE,
+		COLOR_TEXTURE,
+		OPACITYTEXTURE,
+		COLORRT_TEXTURE,
 		DEPTHTEXTURE,
 		DEPTHSTENCIL
 	};
+
+	enum class TEXTURE_ACCESS : unsigned char {
+		SAMPLER_OPERATION,
+		IMAGE_OPERATION,
+		FRAMEBUFFER_ATTACHMENT
+	};
+
 
 	enum class GPU_TYPEs : unsigned char{
 		DISCRETE_GPU,
@@ -141,19 +166,13 @@ namespace GFX_API {
 	GFXAPI SHADER_STAGE GetSHADERSTAGE_byIndex(unsigned int Index);
 
 
+	//If you change this enum, don't forget that Textures and Global Buffers uses this enum. So, consider them.
 
-	enum class GLOBALBUFFER_USAGE : unsigned char {
-		CPUWRITE_GPUREAD_FREQUENT = 0,
-		CPUWRITE_GPUREAD_RARE = 1,
-		CPUREAD_GPUWRITE_FREQUENT = 2,
-		CPUREAD_GPUWRITE_RARE = 3,
-		GPUREADWRITE_FREQUENT = 4,
-		GPUREADWRITE_RARE = 5
-	};
-
-	//CODE THESE ENUMs IN SUMMER!
-
-	enum class BLEND_STATEs : unsigned char{
-		//Code here
+	enum class BUFFER_VISIBILITY : unsigned char {
+		CPUREADWRITE_GPUREADONLY = 0,			//Use this when all the data responsibility on the CPU and GPU just reads it (Global Camera Matrixes, CPU Software Rasterization Depth reads from the GPU etc.)
+		CPUREADWRITE_GPUREADWRITE,				//Use this when both CPU and GPU changes the data, no matter frequency. This has the worst performance on modern APIs
+		CPUREADONLY_GPUREADWRITE,				//Use this when CPU needs feedback of the data proccessed on the GPU (Occlusion Culling on the CPU according to last frame's depth buffer etc.)
+		CPUEXISTENCE_GPUREADWRITE,				//Use this for CPU never touchs the data and GPU has the all responsibility (Framebuffer attachments, GPU-driven pipeline buffers etc.)
+		CPUEXISTENCE_GPUREADONLY,				//Use this when data never changes, just uploaded or deleted from the GPU (Object material rendering textures, constant global buffers etc.)
 	};
 }

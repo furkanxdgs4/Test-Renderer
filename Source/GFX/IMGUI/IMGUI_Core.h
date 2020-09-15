@@ -60,7 +60,6 @@ namespace GFX_API {
 		void CheckListBox(const char* name, Bitset* items_status, vector<string>* item_names);
 		//Display a texture that is in the GPU memory, for example a Render Target or a Texture
 		void Display_Texture(unsigned int TEXTURE_ASSETID, const unsigned int& Display_WIDTH, const unsigned int& Display_HEIGHT, bool should_Flip_Vertically = false);
-		void Display_RenderTarget(unsigned int RT_GFXID, const unsigned int& Display_WIDTH, const unsigned int& Display_HEIGHT, bool should_Flip_Vertically = false);
 		bool Begin_TabBar();
 		void End_TabBar();
 		bool Begin_TabItem(const char* name);

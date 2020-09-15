@@ -205,7 +205,7 @@ namespace TuranEditor {
 			PositionAttribute.Index = 0;
 			PositionAttribute.Stride = 0;
 			PositionAttribute.Start_Offset = 0;
-			PositionAttribute.DATATYPE = GFX_API::UNIFORMTYPE::VAR_VEC3;
+			PositionAttribute.DATATYPE = GFX_API::DATA_TYPE::VAR_VEC3;
 			MESH->DataLayout.Attributes.push_back(PositionAttribute);
 
 			//Use this index to set Attribute index for each attribute
@@ -221,10 +221,10 @@ namespace TuranEditor {
 				TextCoordAttribute.Start_Offset = 0;
 				switch (data->mNumUVComponents[i]) {
 				case 2:
-					TextCoordAttribute.DATATYPE = GFX_API::UNIFORMTYPE::VAR_VEC2;
+					TextCoordAttribute.DATATYPE = GFX_API::DATA_TYPE::VAR_VEC2;
 					break;
 				default:
-					TextCoordAttribute.DATATYPE = GFX_API::UNIFORMTYPE::VAR_VEC2;
+					TextCoordAttribute.DATATYPE = GFX_API::DATA_TYPE::VAR_VEC2;
 					TuranAPI::LOG_WARNING("One of the meshes has unsupported number of channels in its Texture Coordinates!");
 				}
 				MESH->DataLayout.Attributes.push_back(TextCoordAttribute);
@@ -239,7 +239,7 @@ namespace TuranEditor {
 				VertColorAttribute.Index = NextAttribute_Index + i;
 				VertColorAttribute.Stride = 0;
 				VertColorAttribute.Start_Offset = 0;
-				VertColorAttribute.DATATYPE = GFX_API::UNIFORMTYPE::VAR_VEC4;
+				VertColorAttribute.DATATYPE = GFX_API::DATA_TYPE::VAR_VEC4;
 				MESH->DataLayout.Attributes.push_back(VertColorAttribute);
 				NextAttribute_Index++;
 			}
@@ -251,7 +251,7 @@ namespace TuranEditor {
 				NextAttribute_Index++;
 				NormalAttribute.Stride = 0;
 				NormalAttribute.Start_Offset = 0;
-				NormalAttribute.DATATYPE = GFX_API::UNIFORMTYPE::VAR_VEC3;
+				NormalAttribute.DATATYPE = GFX_API::DATA_TYPE::VAR_VEC3;
 				MESH->DataLayout.Attributes.push_back(NormalAttribute);
 			}
 			if (Attribute_Info.Tangent) {
@@ -261,7 +261,7 @@ namespace TuranEditor {
 				NextAttribute_Index++;
 				TangentAttribute.Stride = 0;
 				TangentAttribute.Start_Offset = 0;
-				TangentAttribute.DATATYPE = GFX_API::UNIFORMTYPE::VAR_VEC3;
+				TangentAttribute.DATATYPE = GFX_API::DATA_TYPE::VAR_VEC3;
 				MESH->DataLayout.Attributes.push_back(TangentAttribute);
 			}
 			if (Attribute_Info.Bitangent) {
@@ -271,7 +271,7 @@ namespace TuranEditor {
 				NextAttribute_Index++;
 				BitangentAttribute.Stride = 0;
 				BitangentAttribute.Start_Offset = 0;
-				BitangentAttribute.DATATYPE = GFX_API::UNIFORMTYPE::VAR_VEC3;
+				BitangentAttribute.DATATYPE = GFX_API::DATA_TYPE::VAR_VEC3;
 				MESH->DataLayout.Attributes.push_back(BitangentAttribute);
 			}
 			if (Attribute_Info.Bones) {

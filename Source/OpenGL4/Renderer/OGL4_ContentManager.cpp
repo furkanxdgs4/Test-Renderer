@@ -22,36 +22,59 @@ namespace OpenGL4 {
 	void OGL4_API Set_VertexAttribPointer(const GFX_API::VertexAttribute* attribute, size_t Start_Offset) {
 		switch (attribute->DATATYPE)
 		{
-		case GFX_API::UNIFORMTYPE::VAR_FLOAT32:
+		case GFX_API::DATA_TYPE::VAR_FLOAT32:
 			glVertexAttribPointer(attribute->Index, 1, GL_FLOAT, GL_FALSE, sizeof(float32), (void*)(Start_Offset));
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_INT32:
+		case GFX_API::DATA_TYPE::VAR_INT32:
 			glVertexAttribPointer(attribute->Index, 1, GL_INT, GL_FALSE, sizeof(int), (void*)(Start_Offset));
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_UINT32:
+		case GFX_API::DATA_TYPE::VAR_UINT32:
 			glVertexAttribPointer(attribute->Index, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(unsigned int), (void*)(Start_Offset));
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_BYTE8:
+		case GFX_API::DATA_TYPE::VAR_BYTE8:
 			glVertexAttribPointer(attribute->Index, 1, GL_BYTE, GL_FALSE, sizeof(char), (void*)(Start_Offset));
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_UBYTE8:
+		case GFX_API::DATA_TYPE::VAR_UBYTE8:
 			glVertexAttribPointer(attribute->Index, 1, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(unsigned char), (void*)(Start_Offset));
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_VEC2:
+		case GFX_API::DATA_TYPE::VAR_VEC2:
 			glVertexAttribPointer(attribute->Index, 2, GL_FLOAT, GL_FALSE, sizeof(vec2), (void*)(Start_Offset));
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_VEC3:
+		case GFX_API::DATA_TYPE::VAR_VEC3:
 			glVertexAttribPointer(attribute->Index, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*)(Start_Offset));
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_VEC4:
+		case GFX_API::DATA_TYPE::VAR_VEC4:
 			glVertexAttribPointer(attribute->Index, 4, GL_FLOAT, GL_FALSE, sizeof(vec4), (void*)(Start_Offset));
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_MAT4x4:
+		case GFX_API::DATA_TYPE::VAR_MAT4x4:
 			glVertexAttribPointer(attribute->Index, 16, GL_FLOAT, GL_FALSE, sizeof(mat4x4), (void*)(Start_Offset));
 			break;
 		default:
 			TuranAPI::LOG_CRASHING("Uniform Type isn't supported to set to Vertex Attribute!");
 			break;
+		}
+	}
+	void Bind_GlobalBuffersto_ShaderProgram(const vector<GFX_API::GlobalBuffer_Access>& GLOBALBUFFERs, unsigned int SHADERPROGRAM) {
+		for (unsigned int i = 0; i < GLOBALBUFFERs.size(); i++) {
+			GFX_API::GFX_Buffer* BUFFER = GFXContentManager->Find_GlobalBuffer_byBufferID(GLOBALBUFFERs[i].BUFFER_ID);
+			unsigned int BUFFER_BINDINGPOINT = 0, buffer_index = 0;
+			BUFFER_BINDINGPOINT = *(unsigned int*)BUFFER->BINDING_POINT;
+
+			switch (BUFFER->USAGE) {
+			case GFX_API::BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADONLY:
+			case GFX_API::BUFFER_VISIBILITY::CPUREADWRITE_GPUREADONLY:
+				buffer_index = glGetUniformBlockIndex(SHADERPROGRAM, BUFFER->NAME.c_str());
+				glUniformBlockBinding(SHADERPROGRAM, buffer_index, BUFFER_BINDINGPOINT);
+				break;
+			case GFX_API::BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADWRITE:
+			case GFX_API::BUFFER_VISIBILITY::CPUREADWRITE_GPUREADWRITE:
+			case GFX_API::BUFFER_VISIBILITY::CPUREADONLY_GPUREADWRITE:
+				buffer_index = glGetProgramResourceIndex(SHADERPROGRAM, GL_SHADER_STORAGE_BLOCK, BUFFER->NAME.c_str());
+				glShaderStorageBlockBinding(SHADERPROGRAM, buffer_index, BUFFER_BINDINGPOINT);
+				break;
+			default:
+				TuranAPI::LOG_NOTCODED("Bind_GlobalBuffersto_ShaderProgram doesn't support this type of buffer usage!", true);
+			}
 		}
 	}
 
@@ -83,9 +106,6 @@ namespace OpenGL4 {
 		}
 		for (unsigned int i = 0; i < FBs.size(); i++) {
 			Delete_Framebuffer(FBs[i].ID);
-		}
-		for (unsigned int i = 0; i < RTs.size(); i++) {
-			Delete_RenderTarget(RTs[i].ID);
 		}
 		TuranAPI::LOG_STATUS("Unloading has finished!");
 	}
@@ -212,20 +232,16 @@ namespace OpenGL4 {
 	}
 
 
-	void GPU_ContentManager::Upload_Texture(GFX_API::Texture_Resource* ASSET, unsigned int Asset_ID, bool Generate_Mipmap) {
-		if (Find_GFXTexture_byID(Asset_ID)) {
-			return;
-		}
+	void GPU_ContentManager::Create_Texture(GFX_API::Texture_Resource* ASSET, unsigned int Asset_ID) {
 		unsigned int TEXTURE_DIMENSION = Find_Texture_Dimension(ASSET->Properties.DIMENSION);
-		unsigned int TEXTURE_CHANNELs = Find_Texture_Channel_Type(ASSET->Properties.CHANNEL_TYPE);
-		unsigned int TEXTURE_WRAPPING = Find_Texture_Wrapping(ASSET->Properties.WRAPPING);
-		unsigned int TEXTURE_MIPMAPFILTER = Find_Texture_Mipmap_Filtering(ASSET->Properties.MIPMAP_FILTERING);
-		unsigned int TEXTURE_VALUETYPE = Find_Texture_Value_Type(ASSET->Properties.VALUE_TYPE);
-
-
 		unsigned int* TEXTUREID = new unsigned int(0);
 		glGenTextures(1, TEXTUREID);
 		glBindTexture(TEXTURE_DIMENSION, *TEXTUREID);
+
+
+		unsigned int TEXTURE_WRAPPING = Find_Texture_Wrapping(ASSET->Properties.WRAPPING);
+		unsigned int TEXTURE_MIPMAPFILTER = Find_Texture_Mipmap_Filtering(ASSET->Properties.MIPMAP_FILTERING);
+		unsigned int TEXTURE_VALUETYPE = Find_glTexImage2D_ValueType(ASSET->Properties.CHANNEL_TYPE);
 
 
 		glTexParameteri(TEXTURE_DIMENSION, GL_TEXTURE_WRAP_S, TEXTURE_WRAPPING);
@@ -233,9 +249,11 @@ namespace OpenGL4 {
 		glTexParameteri(TEXTURE_DIMENSION, GL_TEXTURE_MIN_FILTER, TEXTURE_MIPMAPFILTER);
 		glTexParameteri(TEXTURE_DIMENSION, GL_TEXTURE_MAG_FILTER, TEXTURE_MIPMAPFILTER);
 
-		glTexImage2D(TEXTURE_DIMENSION, 0, TEXTURE_CHANNELs, ASSET->WIDTH, ASSET->HEIGHT, 0, TEXTURE_CHANNELs, TEXTURE_VALUETYPE, ASSET->DATA);
-		if (Generate_Mipmap) {
-			glGenerateMipmap(TEXTURE_DIMENSION);
+		if (ASSET->OP_TYPE == GFX_API::BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADWRITE || ASSET->OP_TYPE == GFX_API::BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADONLY) {
+			glTexImage2D(TEXTURE_DIMENSION, 0, Find_glTexImage2D_InternalFormat(ASSET), ASSET->WIDTH, ASSET->HEIGHT, 0, Find_glTexImage2D_Format(ASSET), TEXTURE_VALUETYPE, ASSET->DATA);
+			if (ASSET->Has_Mipmaps) {
+				glGenerateMipmap(TEXTURE_DIMENSION);
+			}
 		}
 
 		TuranAPI::LOG_NOTCODED("Texture_Resource should be able to store its own Mipmaps in Disk and we should upload them one by one here!\n", false);
@@ -244,6 +262,9 @@ namespace OpenGL4 {
 		TEXTURE.GL_ID = TEXTUREID;
 		TEXTURE.ASSET_ID = Asset_ID;
 		TEXTUREs.push_back(TEXTURE);
+	}
+	void GPU_ContentManager::Upload_Texture(unsigned int Asset_ID, void* DATA, unsigned int DATA_SIZE) {
+		TuranAPI::LOG_NOTCODED("Upload_Texture isn't coded!", true);
 	}
 	void GPU_ContentManager::Unload_Texture(unsigned int TEXTURE_ID) {
 		unsigned int vector_index = 0;
@@ -262,14 +283,28 @@ namespace OpenGL4 {
 	}
 
 
-	unsigned int GPU_ContentManager::Create_GlobalBuffer(const char* NAME, void* DATA, unsigned int DATA_SIZE, GFX_API::GLOBALBUFFER_USAGE USAGE) {
+	unsigned int GPU_ContentManager::Create_GlobalBuffer(const char* NAME, void* DATA, unsigned int DATA_SIZE, GFX_API::BUFFER_VISIBILITY USAGE) {
 		unsigned int* BUFFER_GLID = new unsigned int(0);
-		glGenBuffers(1, BUFFER_GLID);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, *BUFFER_GLID);
-		glBufferData(GL_SHADER_STORAGE_BUFFER, DATA_SIZE, DATA, Find_BUFFERUSAGE(USAGE));
 		unsigned int* BindingPoint = new unsigned int(Create_BindingPoint());
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, *BindingPoint, *BUFFER_GLID);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+		switch (USAGE) {
+		case GFX_API::BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADONLY:
+		case GFX_API::BUFFER_VISIBILITY::CPUREADWRITE_GPUREADONLY:
+			glGenBuffers(1, BUFFER_GLID);
+			glBindBuffer(GL_UNIFORM_BUFFER, *BUFFER_GLID);
+			glBufferData(GL_UNIFORM_BUFFER, DATA_SIZE, DATA, Find_BUFFERUSAGE(USAGE));
+			glBindBufferBase(GL_UNIFORM_BUFFER, *BindingPoint, *BUFFER_GLID);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+			break;
+		case GFX_API::BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADWRITE:
+		case GFX_API::BUFFER_VISIBILITY::CPUREADWRITE_GPUREADWRITE:
+		case GFX_API::BUFFER_VISIBILITY::CPUREADONLY_GPUREADWRITE:
+			glGenBuffers(1, BUFFER_GLID);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, *BUFFER_GLID);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, DATA_SIZE, DATA, Find_BUFFERUSAGE(USAGE));
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, *BindingPoint, *BUFFER_GLID);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+			break;
+		}
 
 		GFX_API::GFX_Buffer BUFFER;
 		BUFFER.DATA = DATA;
@@ -286,15 +321,27 @@ namespace OpenGL4 {
 		GFX_API::GFX_Buffer* BUFFER = Find_GlobalBuffer_byBufferID(BUFFER_ID);
 		if (BUFFER) {
 			if (BUFFER->GL_ID) {
-				glBindBuffer(GL_SHADER_STORAGE_BUFFER, *(unsigned int*)BUFFER->GL_ID);
 				if (DATA) {
-					delete BUFFER->DATA;
 					BUFFER->DATA = DATA;
 				}
 				if (DATA_SIZE) {
 					BUFFER->DATA_SIZE = DATA_SIZE;
 				}
-				glBufferData(GL_SHADER_STORAGE_BUFFER, BUFFER->DATA_SIZE, BUFFER->DATA, Find_BUFFERUSAGE(BUFFER->USAGE));
+				switch (BUFFER->USAGE) {
+				case GFX_API::BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADONLY:
+				case GFX_API::BUFFER_VISIBILITY::CPUREADWRITE_GPUREADONLY:
+					glBindBuffer(GL_UNIFORM_BUFFER, *(unsigned int*)BUFFER->GL_ID);
+					glBufferData(GL_UNIFORM_BUFFER, BUFFER->DATA_SIZE, BUFFER->DATA, Find_BUFFERUSAGE(BUFFER->USAGE));
+					break;
+				case GFX_API::BUFFER_VISIBILITY::CPUEXISTENCE_GPUREADWRITE:
+				case GFX_API::BUFFER_VISIBILITY::CPUREADWRITE_GPUREADWRITE:
+				case GFX_API::BUFFER_VISIBILITY::CPUREADONLY_GPUREADWRITE:
+					glBindBuffer(GL_SHADER_STORAGE_BUFFER, *(unsigned int*)BUFFER->GL_ID);
+					glBufferData(GL_SHADER_STORAGE_BUFFER, BUFFER->DATA_SIZE, BUFFER->DATA, Find_BUFFERUSAGE(BUFFER->USAGE));
+					break;
+				default:
+					TuranAPI::LOG_NOTCODED("Upload_GlobalBuffer doesn't support this type of buffer usage!", true);
+				}
 			}
 			else {
 				TuranAPI::LOG_ERROR("You shouldn't call Upload_GlobalBuffer(), if you didn't create it with Create_GlobalBuffer()!");
@@ -402,12 +449,7 @@ namespace OpenGL4 {
 			}
 
 			//Bind Global Buffers
-			for (unsigned int i = 0; i < SHADER->GLOBALBUFFER_IDs.size(); i++) {
-				GFX_API::GFX_Buffer* BUFFER = GFXContentManager->Find_GlobalBuffer_byBufferID(SHADER->GLOBALBUFFER_IDs[i]);
-				unsigned int BUFFER_BINDINGPOINT = *(unsigned int*)BUFFER->BINDING_POINT;
-				unsigned int buffer_index = glGetProgramResourceIndex(OGL_CS->ShaderProgram_ID, GL_SHADER_STORAGE_BLOCK, BUFFER->NAME.c_str());
-				glShaderStorageBlockBinding(OGL_CS->ShaderProgram_ID, buffer_index, BUFFER_BINDINGPOINT);
-			}
+			Bind_GlobalBuffersto_ShaderProgram(SHADER->GLOBALBUFFERs, OGL_CS->ShaderProgram_ID);
 		}
 
 		GFX_API::GFX_ComputeShader shadersource;
@@ -463,12 +505,7 @@ namespace OpenGL4 {
 		}
 
 		//Bind Global Buffers
-		for (unsigned int i = 0; i < MATTYPE_ASSET->GLOBALBUFFERs.size(); i++) {
-			GFX_API::GFX_Buffer* BUFFER = GFXContentManager->Find_GlobalBuffer_byBufferID(MATTYPE_ASSET->GLOBALBUFFERs[i].BUFFER_ID);
-			unsigned int BUFFER_BINDINGPOINT = *(unsigned int*)BUFFER->BINDING_POINT;
-			unsigned int buffer_index = glGetProgramResourceIndex(*program_id, GL_SHADER_STORAGE_BLOCK, BUFFER->NAME.c_str());
-			glShaderStorageBlockBinding(*program_id, buffer_index, BUFFER_BINDINGPOINT);
-		}
+		Bind_GlobalBuffersto_ShaderProgram(MATTYPE_ASSET->GLOBALBUFFERs, *program_id);
 
 		GFX_API::GFX_ShaderProgram SHADERPROGRAM;
 		SHADERPROGRAM.ASSET_ID = Asset_ID;
@@ -491,68 +528,6 @@ namespace OpenGL4 {
 			return;
 		}
 		TuranAPI::LOG_WARNING("Unload has failed because intended Material Type isn't found in OpenGL::GPU_ContentManager!");
-	}
-
-
-	unsigned int GPU_ContentManager::Create_RenderTarget(unsigned int WIDTH, unsigned int HEIGTH, GFX_API::TEXTURE_DIMENSIONs DIMENSION,
-		GFX_API::TEXTURE_TYPEs FORMAT, GFX_API::UNIFORMTYPE VALUETYPE, bool Usable_as_Texture) {
-		GFX_API::RenderTarget RT;
-		RT.WIDTH = WIDTH; RT.HEIGHT = HEIGTH; RT.DIMENSION = DIMENSION; RT.FORMAT = FORMAT;
-		RT.FORMAT_VALUETYPE = VALUETYPE; RT.Usable_as_Texture = Usable_as_Texture;
-
-		//Create a Texture!
-		if (Usable_as_Texture) {
-			unsigned int GL_FORMAT = Find_RenderTarget_Format_Type(FORMAT);
-			unsigned int GL_DIMENSION = Find_Texture_Dimension(DIMENSION);
-			unsigned int GL_VALUE_TYPE = Find_Texture_Value_Type(VALUETYPE);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			RT.GL_ID = new unsigned int(0);
-			glGenTextures(1, (unsigned int*)RT.GL_ID);
-			glBindTexture(GL_TEXTURE_2D, *(unsigned int*)RT.GL_ID);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_FORMAT, WIDTH, HEIGTH, 0, GL_FORMAT, GL_VALUE_TYPE, NULL);
-			{
-				string status;
-				status.append("Created a Render Target's OpenGL ID: ");
-				status.append(std::to_string(*(unsigned int*)RT.GL_ID).c_str());
-				TuranAPI::LOG_STATUS(status);
-			}
-
-			GFX->Check_Errors();
-		}
-		//Create a Render Buffer
-		else {
-			TuranAPI::LOG_NOTCODED("Render Buffer creation isn't supported, you should set Usable_as_Texture to true!\n", true);
-			return 0;
-		}
-
-		RT.ID = Create_RenderTargetID();
-		RTs.push_back(RT);
-		return RT.ID;
-	}
-	void GPU_ContentManager::Delete_RenderTarget(unsigned int RT_ID) {
-		GFX_API::RenderTarget* RT = nullptr;
-		unsigned int vector_index = 0;
-		RT = Find_RenderTarget_byID(RT_ID, &vector_index);
-		if (RT) {
-			if (RT->GL_ID) {
-				if (RT->Usable_as_Texture) {
-					glDeleteTextures(1, (unsigned int*)RT->GL_ID);
-				}
-				else {
-					glDeleteRenderbuffers(1, (unsigned int*)RT->GL_ID);
-				}
-				delete (unsigned int*)RT->GL_ID;
-				RT->GL_ID = nullptr;
-			}
-			RTs.erase(RTs.begin() + vector_index);
-			return;
-		}
-		TuranAPI::LOG_WARNING("Unload has failed because intended Render Target isn't found in OpenGL::GPU_ContentManager!");
 	}
 
 	unsigned int GPU_ContentManager::Create_Framebuffer() {
@@ -584,12 +559,12 @@ namespace OpenGL4 {
 		GFX_API::Framebuffer* FB = nullptr;
 		FB = Find_Framebuffer_byGFXID(FB_ID);
 
-		GFX_API::RenderTarget* RT = nullptr;
-		RT = Find_RenderTarget_byID(RT_SLOT->RT_ID);
+		GFX_API::GFX_Texture* RT = nullptr;
+		RT = Find_GFXTexture_byID(RT_SLOT->RT_ID);
 		unsigned int RT_GLID = *(unsigned int*)RT->GL_ID;
 
-		glBindFramebuffer(GL_FRAMEBUFFER, *(unsigned int*)Find_Framebuffer_byGFXID(FB_ID)->GL_ID);
-		if (RT->Usable_as_Texture) {
+		if (RT_GLID) {
+			glBindFramebuffer(GL_FRAMEBUFFER, *(unsigned int*)Find_Framebuffer_byGFXID(FB_ID)->GL_ID);
 			glBindTexture(GL_TEXTURE_2D, RT_GLID);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, Find_RenderTarget_AttachmentType(ATTACHMENT_TYPE), GL_TEXTURE_2D, RT_GLID, 0);
 		}

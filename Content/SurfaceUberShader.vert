@@ -1,4 +1,4 @@
-#version 460
+#version 460 core
 layout(location = 0) in vec3 Vertex_Pos;
 layout(location = 1) in vec2 TextCoord;
 layout(location = 2) in vec3 Vertex_Nor;
@@ -18,7 +18,7 @@ layout (std430) buffer VIEW_MATRICES{
 	mat4 VIEW_MATRIX;
 };
 
-layout (std430) buffer MODEL_MATRICES{
+layout (std140) buffer MODEL_MATRICES{
 	mat4 MODEL_MATRICes[MAX_WORLDOBJECTNUMBER];
 };
 

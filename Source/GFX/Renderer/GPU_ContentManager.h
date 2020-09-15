@@ -29,7 +29,7 @@ namespace GFX_API {
 	*/
 	struct GFXAPI VertexAttribute {
 		string AttributeName;
-		UNIFORMTYPE DATATYPE;
+		DATA_TYPE DATATYPE;
 		unsigned char Index;
 		size_t Stride;
 		size_t Start_Offset;
@@ -76,7 +76,6 @@ namespace GFX_API {
 		vector<GFX_ShaderProgram> SHADERPROGRAMs;
 		vector<GFX_ComputeShader> COMPUTESHADERs;
 
-		vector<RenderTarget> RTs;
 		vector<Framebuffer> FBs;
 
 
@@ -91,10 +90,6 @@ namespace GFX_API {
 		Bitset BUFFERID_BITSET;
 		unsigned int Create_GlobalBufferID();
 		void Delete_GlobalBufferID(unsigned int ID);
-
-		Bitset RTID_BITSET;
-		unsigned int Create_RenderTargetID();
-		void Delete_RenderTargetID(unsigned int ID);
 
 		Bitset FBID_BITSET;
 		unsigned int Create_FrameBufferID();
@@ -115,11 +110,13 @@ namespace GFX_API {
 		virtual unsigned int CreatePointBuffer_fromMeshBuffer(unsigned int MeshBuffer_ID, unsigned int AttributeIndex_toUseAsPointBuffer) = 0;
 		virtual void Unload_PointBuffer(unsigned int PointBuffer_ID) = 0;
 
-		virtual void Upload_Texture(Texture_Resource* TEXTURE_ASSET, unsigned int Asset_ID, bool Generate_Mipmap) = 0;
+		//Create a Texture Buffer and upload if texture's GPUREADONLY_CPUEXISTENCE
+		virtual void Create_Texture(Texture_Resource* TEXTURE_ASSET, unsigned int Asset_ID) = 0;
+		virtual void Upload_Texture(unsigned int Asset_ID, void* DATA, unsigned int DATA_SIZE) = 0;
 		virtual void Unload_Texture(unsigned int ASSET_ID) = 0;
 
 
-		virtual unsigned int Create_GlobalBuffer(const char* BUFFER_NAME, void* DATA, unsigned int DATA_SIZE, GLOBALBUFFER_USAGE USAGE) = 0;
+		virtual unsigned int Create_GlobalBuffer(const char* BUFFER_NAME, void* DATA, unsigned int DATA_SIZE, BUFFER_VISIBILITY USAGE) = 0;
 		//If you want to upload the data, but data's pointer didn't change since the last time (Creation or Re-Upload) you can use nullptr!
 		//Also if the data's size isn't changed since the last time, you can pass as 0.
 		//If DATA isn't nullptr, old data that buffer holds will be deleted!
@@ -135,10 +132,6 @@ namespace GFX_API {
 		virtual void Delete_MaterialType(unsigned int Asset_ID) = 0;
 
 
-		virtual unsigned int Create_RenderTarget(unsigned int WIDTH, unsigned int HEIGTH, TEXTURE_DIMENSIONs DIMENSION,
-			TEXTURE_TYPEs FORMAT, UNIFORMTYPE FORMAT_VALUETYPE, bool Usable_as_Texture) = 0;
-		virtual void Delete_RenderTarget(unsigned int RT_ID) = 0;
-
 		virtual unsigned int Create_Framebuffer() = 0;
 		virtual void Attach_RenderTarget_toFramebuffer(const GFX_API::Framebuffer::RT_SLOT* RT_SLOT, GFX_API::RT_ATTACHMENTs ATTACHMENT_TYPE, unsigned int FB_ID) = 0;
 		virtual void Delete_Framebuffer(unsigned int Framebuffer_ID) = 0;
@@ -149,7 +142,6 @@ namespace GFX_API {
 		GFX_Point* Find_PointBuffer_byBufferID(unsigned int PointBufferID, unsigned int* vector_index = nullptr);
 		GFX_Buffer* Find_GlobalBuffer_byBufferID(unsigned int GlobalBufferID, unsigned int* vector_index = nullptr);
 		Framebuffer* Find_Framebuffer_byGFXID(unsigned int FB_ID, unsigned int* vector_index = nullptr);
-		RenderTarget* Find_RenderTarget_byID(unsigned int RT_ID, unsigned int* vector_index = nullptr);
 		GFX_Texture* Find_GFXTexture_byID(unsigned int Texture_AssetID, unsigned int* vector_index = nullptr);
 		GFX_ShaderSource* Find_GFXShaderSource_byID(unsigned int ShaderSource_AssetID, unsigned int* vector_index = nullptr);
 		GFX_ComputeShader* Find_GFXComputeShader_byID(unsigned int ComputeShader_AssetID, unsigned int* vector_index = nullptr);

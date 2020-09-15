@@ -1,4 +1,4 @@
-#version 460
+#version 460 core
 in vec2 TextureCoords;
 in vec3 VertexNormals;
 in vec3 Tangent;
@@ -36,7 +36,7 @@ layout(binding = 3) uniform sampler2D OPACITYTEXTURE;
 uniform uint MATINST_INDEX;
 
 void main(){
-	//vec4 DIFFUSE = texture(DIFFUSETEXTURE, TextureCoords);
-	vec4 DIFFUSE = vec4((VertexNormals + 1) / 2, 1.0f);
+	vec4 DIFFUSE = texture(DIFFUSETEXTURE, TextureCoords);
+	//vec4 DIFFUSE = vec4((VertexNormals + 1) / 2, 1.0f);
 	Fragment_Color = vec4(DIFFUSE.rgb,1.0f);
 }

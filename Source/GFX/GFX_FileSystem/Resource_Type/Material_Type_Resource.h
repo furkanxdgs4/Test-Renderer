@@ -7,9 +7,9 @@ enum class RESOURCETYPEs : char;
 namespace GFX_API {
 	struct GFXAPI Material_Uniform {
 		string VARIABLE_NAME;
-		UNIFORMTYPE VARIABLE_TYPE;
+		DATA_TYPE VARIABLE_TYPE;
 		void* DATA = nullptr;
-		Material_Uniform(const char* variable_name, UNIFORMTYPE variable_type);
+		Material_Uniform(const char* variable_name, DATA_TYPE variable_type);
 		bool Verify_UniformData();
 		Material_Uniform();
 	};
@@ -24,21 +24,24 @@ namespace GFX_API {
 		SHADER_LANGUAGEs LANGUAGE;
 	};
 	
-	enum class TEXTURE_ACCESS : unsigned char {
-		SAMPLER_OPERATION,	//OP_TYPE = READ_ONLY is neccessary
-		IMAGE_OPERATION,	//Any OP_TYPE is available
-		FRAGMENT_OUTPUT		//OP_TYPE should be WRITE_ONLY or READ_WRITE
-	};
-
+	/*
+		1) ACCESS_TYPE defines the texture's binding way
+		2) OP_TYPE defines why shader accesses the texture. 
+	If a texture is READ_WRITE but you just read it in the shader, you can set as READ_ONLY
+		3) TEXTURE_ID is texture's asset ID. But render targets (framebuffer attachments) aren't assets.
+		So, TEXTURE_ID isn't important if ACCESS_TYPE is FRAMEBUFFER_ATTACHMENT
+	*/
 	struct GFXAPI Texture_Access {
 		TEXTURE_DIMENSIONs DIMENSIONs;
 		TEXTURE_CHANNELs CHANNELs;
 		OPERATION_TYPE OP_TYPE;
-		TEXTURE_ACCESS ACCESS_TYPE;		//Don't care if OP_TYPE is READ_ONLY
+		TEXTURE_ACCESS ACCESS_TYPE;
 		unsigned int BINDING_POINT;		
-		unsigned int TEXTURE_ID;		//Care if OP_TYPE is READ_ONLY or WRITE_ACCESS is IMAGE_OPERATION
+		unsigned int TEXTURE_ID;
 	};
 
+	
+	//ACCESS_TYPE isn't used for anything, just an additional information
 	struct GFXAPI GlobalBuffer_Access {
 		unsigned int BUFFER_ID;
 		OPERATION_TYPE ACCESS_TYPE;
@@ -55,15 +58,6 @@ namespace GFX_API {
 		vector<GlobalBuffer_Access> GLOBALBUFFERs;
 	};
 	
-	class GFXAPI ComputeShader_Resource {
-	public:
-		SHADER_LANGUAGEs LANGUAGE;
-		string SOURCE_CODE;
-		vector<Material_Uniform> UNIFORMs;
-		vector<unsigned int> GLOBALBUFFER_IDs;
-	};
-
-
 	//Don't forget, data handling for each uniform type is the responsibility of the user!
 	class GFXAPI Material_Instance {
 	public:
@@ -76,7 +70,24 @@ namespace GFX_API {
 		vector<Material_Uniform> UNIFORM_LIST;
 
 		unsigned int Find_Uniform_byName(const char* uniform_name);
-	public:
 		void Set_Uniform_Data(const char* uniform_name, void* pointer_to_data);
+	};
+
+
+
+	class GFXAPI ComputeShader_Resource {
+	public:
+		SHADER_LANGUAGEs LANGUAGE;
+		string SOURCE_CODE;
+		vector<Texture_Access> TEXTUREs;
+		vector<Material_Uniform> UNIFORMs;
+		vector<GlobalBuffer_Access> GLOBALBUFFERs;
+	};
+
+	class GFXAPI ComputeShader_Instance {
+	public:
+		unsigned int ComputeShader;
+		vector<Texture_Access> TEXTURE_LIST;
+		vector<Material_Uniform> UNIFORM_LIST;
 	};
 }

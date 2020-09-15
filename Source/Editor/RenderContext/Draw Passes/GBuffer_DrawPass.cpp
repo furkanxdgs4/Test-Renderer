@@ -66,6 +66,7 @@ void Main_DrawPass::RenderGraph_SetupPhase(vector<GFX_API::Framebuffer::RT_SLOT>
 	Is_SetupPhase_Called = true;
 
 	FRAMEBUFFER = GFXContentManager->Create_Framebuffer();
+	FB = GFXContentManager->Find_Framebuffer_byGFXID(FRAMEBUFFER);
 
 	GFXContentManager->Attach_RenderTarget_toFramebuffer(&RTs[0], GFX_API::RT_ATTACHMENTs::TEXTURE_ATTACHMENT_COLOR0, FRAMEBUFFER);
 	GFXContentManager->Attach_RenderTarget_toFramebuffer(&RTs[1], GFX_API::RT_ATTACHMENTs::TEXTURE_ATTACHMENT_DEPTH, FRAMEBUFFER);
@@ -81,7 +82,7 @@ void Main_DrawPass::ResourceUpdatePhase() {
 		return;
 	}
 	for (unsigned int i = 0; i < RG_DrawCallBuffer.size(); i++) {
-		if ((RG_DrawCallBuffer[i].JoinedDrawPasses && Get_BitMaskFlag())) {
+		if ((RG_DrawCallBuffer[i].JoinedDrawPasses & Get_BitMaskFlag())) {
 			DrawCallBuffer.push_back(i);
 		}
 	}
@@ -94,7 +95,7 @@ void Main_DrawPass::Execute() {
 	TuranAPI::LOG_STATUS("G-Buffer Render Loop is started to run!");
 	GFX->Check_Errors();
 
-	GFXRENDERER->Bind_Framebuffer(FRAMEBUFFER);
+	GFXRENDERER->Bind_Framebuffer(FB);
 
 	//Status Report!
 	{
@@ -110,14 +111,20 @@ void Main_DrawPass::Execute() {
 		GFXRENDERER->Set_CullingMode(GFX_API::CULL_MODE::CULL_BACK);
 
 		const GFX_API::DrawCall* DrawCall = nullptr;
+		vector<const GFX_API::GFX_Mesh*> MESHes(DrawCallBuffer.size());
+		for (unsigned int drawcall_index = 0; drawcall_index < DrawCallBuffer.size(); drawcall_index++) {
+			DrawCall = &RG_DrawCallBuffer[DrawCallBuffer[drawcall_index]];
+			MESHes[drawcall_index] = GFXContentManager->Find_MeshBuffer_byBufferID(DrawCall->MeshBuffer_ID);
+		}
+
 		for (unsigned int drawcall_index = 0; drawcall_index < DrawCallBuffer.size(); drawcall_index++) {
 			DrawCall = &RG_DrawCallBuffer[DrawCallBuffer[drawcall_index]];
 			GFX_API::Material_Instance* MATINST = (GFX_API::Material_Instance*)TuranEditor::EDITOR_FILESYSTEM->Find_ResourceIdentifier_byID(DrawCall->ShaderInstance_ID)->DATA;
 			GFXRENDERER->Bind_MatInstance(MATINST);
-			GFXRENDERER->DrawTriangle(DrawCall->MeshBuffer_ID);
+			GFXRENDERER->DrawTriangle(MESHes[drawcall_index]);
 		}
 	}
-	
+	/*
 	//DRAW LINES
 	{
 		GFXRENDERER->Set_DepthTest(GFX_API::DEPTH_MODEs::DEPTH_READ_WRITE, GFX_API::DEPTH_TESTs::DEPTH_TEST_LESS);
@@ -134,7 +141,7 @@ void Main_DrawPass::Execute() {
 				GFXRENDERER->DrawLine(PointLineDraw->PointBuffer_ID);
 			}
 		}
-	}
+	}*/
 
 	DrawCallBuffer.clear();
 	TuranAPI::LOG_STATUS("G-Buffer Render Loop is finished!");

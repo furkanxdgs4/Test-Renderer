@@ -1,0 +1,110 @@
+#version 460
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(rgba32f, binding = 0) uniform image2D OutputTexture;
+
+#define FAILEDINTERSECTION_SENTINEL vec4(0,0,0,-1)
+#define M_PI 3,14
+
+layout (std430) buffer RAYTRACE_CAMERA{
+    vec3 camera_worldpos;
+    mat4 CAMERA_to_WORLD;
+};
+
+#define MAX_MATINSTNUMBER 1000
+#define MAX_SPOTLIGHTs 10
+#define MAX_POINTLIGHTs 10
+#define MAX_DIRECTIONALLIGHTs 1
+struct PointLight{
+	vec3 POSITION;
+};
+
+struct SpotLight{
+	vec3 POSITION;
+};
+
+struct DirectionalLight{
+	vec3 DIRECTION;
+	vec3 COLOR;
+};
+
+layout (std430) buffer LIGHTs{
+	DirectionalLight DIRECTIONALLIGHTs[MAX_DIRECTIONALLIGHTs];
+	PointLight POINTLIGHTs[MAX_POINTLIGHTs];
+	SpotLight SPOTLIGHTs[MAX_SPOTLIGHTs];
+	uint DIRECTIONALLIGHTs_COUNT, POINTLIGHTs_COUNT, SPOTLIGHTs_COUNT;
+};
+
+vec3 SPHERE_CENTER = vec3(0,0,10);
+float SPHERE_RADIUS = 1.0f;
+
+//Return the position of the intersection point
+//Formulas from Geometric Solution in https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
+vec4 Calculate_SphereIntersection(vec3 O, vec3 D){
+    vec3 C = SPHERE_CENTER;
+    float radius = SPHERE_RADIUS;
+
+    vec3 L = C - O;
+    float tca = dot(L, D);
+    if(tca < 0){
+        return FAILEDINTERSECTION_SENTINEL;
+    }
+
+    float length_L = length(L);
+    float d = sqrt((length_L * length_L) - (tca * tca));
+    if(d > radius){
+        return FAILEDINTERSECTION_SENTINEL;
+    }
+    if(d < 0){
+        return FAILEDINTERSECTION_SENTINEL;
+    }
+
+    float t0 = tca - sqrt((radius * radius) - (d * d));
+
+    return vec4(O + (t0 * D), 1.0f);
+};
+
+
+
+
+
+
+void main(){
+    vec4 pixel_color = vec4(1,0,0,1);
+    ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 image_Size = imageSize(OutputTexture);
+    float aspect_ratio = float(image_Size.x) / float(image_Size.y);
+
+    vec3 WS_RAYDIR;
+    
+    
+    //Basic Implementation
+    {
+        //NDC here is in [0,1] range, not in rasterization range [-1,1].
+        vec2 pixel_NDCPos = (pixel_coords + 0.5f) / image_Size;
+        vec3 pixel_WorldPos = camera_worldpos + vec3(pixel_NDCPos, 1);
+        pixel_WorldPos = vec3(2 * pixel_WorldPos.xy - 1, pixel_WorldPos.z);
+        pixel_WorldPos.y = pixel_WorldPos.y / aspect_ratio;
+        //For now, pixel_WorldPos is our ray direction. I mean, there is no camera position or rotation change
+        WS_RAYDIR = normalize(pixel_WorldPos - camera_worldpos);
+    }
+
+    /*
+    //Advanced Implementation
+    {
+        //NDC here is in [0,1] range, not in rasterization range [-1,1].
+        vec2 pixel_NDCPos = (pixel_coords + 0.5f) / image_Size;
+        vec3 pixel_CamSpacePos = vec3(2 * pixel_NDCPos - 1, -0.5f); //-0.5f is for 90 fov
+        vec3 pixel_WSPos = vec3((CAMERA_to_WORLD * vec4(pixel_CamSpacePos, 1.0f)).xyz);
+        WS_RAYDIR = normalize(pixel_WSPos - camera_worldpos);  
+    }*/
+    
+    vec4 INTERSECTION_POINT = Calculate_SphereIntersection(camera_worldpos, WS_RAYDIR);
+    if(INTERSECTION_POINT != FAILEDINTERSECTION_SENTINEL){
+        vec3 WS_NORMAL = normalize(INTERSECTION_POINT.xyz - SPHERE_CENTER);
+        vec3 LIGHT_DIR = normalize(DIRECTIONALLIGHTs[0].DIRECTION);
+        float DIFFUSE = max(dot(WS_NORMAL, LIGHT_DIR), 0.0f);
+        pixel_color = vec4(vec3(0,0,1) * DIFFUSE,1.0f);
+    }
+
+    imageStore(OutputTexture, pixel_coords, pixel_color);
+}

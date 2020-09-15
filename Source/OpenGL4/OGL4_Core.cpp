@@ -24,6 +24,8 @@ namespace OpenGL4 {
 		WINDOW* OGL4_WINDOW = (WINDOW*)Main_Window;
 		IMGUI->Create_Context(((WINDOW*)Main_Window)->GLFWWINDOW);
 		IMGUI->GPUContentManager = ContentManager;
+		glfwMakeContextCurrent(((WINDOW*)Main_Window)->GLFWWINDOW);
+
 		TuranAPI::LOG_STATUS("OpenGL 4 systems are started!");
 	}
 	OpenGL4_Core::~OpenGL4_Core() {
@@ -44,7 +46,7 @@ namespace OpenGL4 {
 		glfwMakeContextCurrent(((WINDOW*)Main_Window)->GLFWWINDOW);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		unsigned int RenderTarget_GLID = *(unsigned int*)GFXContentManager->Find_RenderTarget_byID(RenderTarget_GFXID)->GL_ID;
+		unsigned int RenderTarget_GLID = *(unsigned int*)GFXContentManager->Find_GFXTexture_byID(RenderTarget_GFXID)->GL_ID;
 		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderTarget_GLID, 0);
 	}
 
@@ -65,7 +67,6 @@ namespace OpenGL4 {
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	}
 
 	void OpenGL4_Core::Check_Computer_Specs() {

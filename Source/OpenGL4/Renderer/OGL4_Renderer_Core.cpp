@@ -6,43 +6,32 @@
 
 namespace OpenGL4 {
 
-	void OpenGL4_Renderer::Bind_Framebuffer(unsigned int FB_ID) {
-		GFX_API::Framebuffer* FB = nullptr;
-		if (FB_ID) {
-			FB = GFXContentManager->Find_Framebuffer_byGFXID(FB_ID);
-			glBindFramebuffer(GL_FRAMEBUFFER, *(unsigned int*)FB->GL_ID);
-			for (unsigned int i = 0; i < FB->BOUND_RTs.size(); i++) {
-				auto RT = FB->BOUND_RTs[i];
-				if (RT.RT_READTYPE == GFX_API::RT_READSTATE::CLEAR) {
-					glClearColor(RT.CLEAR_COLOR.x, RT.CLEAR_COLOR.y, RT.CLEAR_COLOR.z, 1);
-					if (RT.ATTACHMENT_TYPE == GFX_API::RT_ATTACHMENTs::TEXTURE_ATTACHMENT_COLOR0) {
-						glClear(GL_COLOR_BUFFER_BIT);
-					}
-					else if(RT.ATTACHMENT_TYPE == GFX_API::RT_ATTACHMENTs::TEXTURE_ATTACHMENT_DEPTH) {
-						glClear(GL_DEPTH_BUFFER_BIT);
-					}
+	void OpenGL4_Renderer::Bind_Framebuffer(const GFX_API::Framebuffer* FB) {
+		glBindFramebuffer(GL_FRAMEBUFFER, *(unsigned int*)FB->GL_ID);
+		for (unsigned int i = 0; i < FB->BOUND_RTs.size(); i++) {
+			auto RT = FB->BOUND_RTs[i];
+			if (RT.RT_READTYPE == GFX_API::RT_READSTATE::CLEAR) {
+				glClearColor(RT.CLEAR_COLOR.x, RT.CLEAR_COLOR.y, RT.CLEAR_COLOR.z, 1);
+				if (RT.ATTACHMENT_TYPE == GFX_API::RT_ATTACHMENTs::TEXTURE_ATTACHMENT_COLOR0) {
+					glClear(GL_COLOR_BUFFER_BIT);
+				}
+				else if (RT.ATTACHMENT_TYPE == GFX_API::RT_ATTACHMENTs::TEXTURE_ATTACHMENT_DEPTH) {
+					glClear(GL_DEPTH_BUFFER_BIT);
 				}
 			}
-			return;
 		}
-		TuranAPI::LOG_CRASHING("Framebuffer's ID is 0! Framebuffer ID can't be zero in GFX!");
 	}
 	void Bind_Uniform(const unsigned int& PROGRAM_ID, const GFX_API::Material_Uniform* uniform);
 	void OpenGL4_Renderer::Bind_MatInstance(GFX_API::Material_Instance* MATINST) {
-		GFX->Check_Errors();
-		unsigned int PROGRAM_GLID = *(unsigned int*)GFXContentManager->Find_GFXShaderProgram_byID(MATINST->Material_Type);
-		if (MATINST->Material_Type != Active_ShaderProgram) {
-			glUseProgram(PROGRAM_GLID);
-			GFX->Check_Errors();
-			Active_ShaderProgram = MATINST->Material_Type;
-		}
+		unsigned int PROGRAM_GLID = *(unsigned int*)GFXContentManager->Find_GFXShaderProgram_byID(MATINST->Material_Type)->GL_ID;
+		glUseProgram(PROGRAM_GLID);
 		//Bind uniforms!
 		for (GFX_API::Material_Uniform UNIFORM : MATINST->UNIFORM_LIST) {
 			Bind_Uniform(PROGRAM_GLID, &UNIFORM);
 		}
 		//Bind uniform textures!
 		for (GFX_API::Texture_Access TEXTURE : MATINST->TEXTURE_LIST) {
-			if (TEXTURE.OP_TYPE == GFX_API::OPERATION_TYPE::READ_ONLY && TEXTURE.ACCESS_TYPE == GFX_API::TEXTURE_ACCESS::SAMPLER_OPERATION && TEXTURE.TEXTURE_ID) {
+			if (TEXTURE.ACCESS_TYPE == GFX_API::TEXTURE_ACCESS::SAMPLER_OPERATION && TEXTURE.TEXTURE_ID) {
 				glActiveTexture(GL_TEXTURE0 + TEXTURE.BINDING_POINT);
 				GFX_API::GFX_Texture* GFXTEXTURE = GFXContentManager->Find_GFXTexture_byID(TEXTURE.TEXTURE_ID);
 				if (GFXTEXTURE) {
@@ -54,7 +43,7 @@ namespace OpenGL4 {
 		for (GFX_API::Texture_Access TEXTURE : MATINST->TEXTURE_LIST) {
 			if (TEXTURE.ACCESS_TYPE == GFX_API::TEXTURE_ACCESS::IMAGE_OPERATION && TEXTURE.TEXTURE_ID) {
 				unsigned int TEXTURE_GLID = *(unsigned int*)GFXContentManager->Find_GFXTexture_byID(TEXTURE.TEXTURE_ID)->GL_ID;
-				glBindImageTexture(TEXTURE.BINDING_POINT, TEXTURE_GLID, 0, GL_FALSE, 0, Find_OGLOperationType(TEXTURE.OP_TYPE), Find_Texture_Channel_Type(TEXTURE.CHANNELs));
+				glBindImageTexture(TEXTURE.BINDING_POINT, TEXTURE_GLID, 0, GL_FALSE, 0, Find_OGLOperationType(TEXTURE.OP_TYPE), Find_ImageTexture_InternalFormat(TEXTURE.CHANNELs));
 			}
 		}
 	}
@@ -107,49 +96,62 @@ namespace OpenGL4 {
 		LINEWIDTH = WIDTH;
 		glLineWidth(WIDTH);
 	}
-	void OpenGL4_Renderer::DrawTriangle(unsigned int MeshBuffer_ID) {
-		GFX->Check_Errors();
-		GFX_API::GFX_Mesh* MESH = nullptr;
+	void OpenGL4_Renderer::DrawTriangle(const GFX_API::GFX_Mesh* MESH) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		GFX->Check_Errors();
-		MESH = GFXContentManager->Find_MeshBuffer_byBufferID(MeshBuffer_ID);
 		OGL4_MESH* GL_MESH = (OGL4_MESH*)MESH->GL_ID;
 		glBindVertexArray(GL_MESH->VAO);
-		GFX->Check_Errors();
 		//Indexed Rendering
 		if (MESH->INDEX_COUNT) {
 			glDrawElements(GL_TRIANGLES, MESH->INDEX_COUNT, GL_UNSIGNED_INT, 0);
-			GFX->Check_Errors();
 		}
 		//Non-Indexed Rendering
 		else {
 			glDrawArrays(GL_TRIANGLES, 0, MESH->VERTEX_COUNT);
-			GFX->Check_Errors();
 		}
 	}
-	void OpenGL4_Renderer::DrawPoint(unsigned int PointBuffer_ID) {
-		GFX->Check_Errors();
-		GFX_API::GFX_Point* POINTBUFFER = nullptr;
-		POINTBUFFER = GFXContentManager->Find_PointBuffer_byBufferID(PointBuffer_ID);
+	void OpenGL4_Renderer::DrawPoint(const GFX_API::GFX_Point* POINTBUFFER) {
 		OGL4_MESH* GL_MESH = (OGL4_MESH*)POINTBUFFER->GL_ID;
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		GFX->Check_Errors();
 		glBindVertexArray(GL_MESH->VAO);
 		GFX->Check_Errors();
 		glDrawArrays(GL_TRIANGLES, 0, POINTBUFFER->POINT_COUNT);
 		GFX->Check_Errors();
 	}
-	void OpenGL4_Renderer::DrawLine(unsigned int PointBuffer_ID) {
-		GFX->Check_Errors();
-		GFX_API::GFX_Point* POINTBUFFER = nullptr;
-		POINTBUFFER = GFXContentManager->Find_PointBuffer_byBufferID(PointBuffer_ID);
+	void OpenGL4_Renderer::DrawLine(const GFX_API::GFX_Point* POINTBUFFER) {
 		OGL4_MESH* GL_MESH = (OGL4_MESH*)POINTBUFFER->GL_ID;
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		GFX->Check_Errors();
 		glBindVertexArray(GL_MESH->VAO);
-		GFX->Check_Errors();
 		glDrawElements(GL_TRIANGLES, POINTBUFFER->POINT_COUNT, GL_UNSIGNED_INT, 0);
-		GFX->Check_Errors();
+	}
+	void OpenGL4_Renderer::Compute_Dispatch(const GFX_API::ComputeShader_Instance* CS, vec3 Dispatch_Groups) {
+		Bind_ComputeInstance(CS);
+		glDispatchCompute(Dispatch_Groups.x, Dispatch_Groups.y, Dispatch_Groups.z);
+		glMemoryBarrier(GL_ALL_BARRIER_BITS);
+	}
+	void OpenGL4_Renderer::Bind_ComputeInstance(const GFX_API::ComputeShader_Instance* CS) {
+		unsigned int PROGRAM_GLID = ((OGL4_ComputeShader*)GFXContentManager->Find_GFXComputeShader_byID(CS->ComputeShader)->GL_ID)->ShaderProgram_ID;
+		glUseProgram(PROGRAM_GLID);
+		//Bind uniforms!
+		for (GFX_API::Material_Uniform UNIFORM : CS->UNIFORM_LIST) {
+			Bind_Uniform(PROGRAM_GLID, &UNIFORM);
+		}
+		//Bind uniform textures!
+		for (GFX_API::Texture_Access TEXTURE : CS->TEXTURE_LIST) {
+			if (TEXTURE.ACCESS_TYPE == GFX_API::TEXTURE_ACCESS::SAMPLER_OPERATION && TEXTURE.TEXTURE_ID) {
+				glActiveTexture(GL_TEXTURE0 + TEXTURE.BINDING_POINT);
+				GFX_API::GFX_Texture* GFXTEXTURE = GFXContentManager->Find_GFXTexture_byID(TEXTURE.TEXTURE_ID);
+				if (GFXTEXTURE) {
+					glBindTexture(GL_TEXTURE_2D, *(unsigned int*)GFXTEXTURE->GL_ID);
+				}
+			}
+		}
+		//Bind image textures!
+		for (GFX_API::Texture_Access TEXTURE : CS->TEXTURE_LIST) {
+			if (TEXTURE.ACCESS_TYPE == GFX_API::TEXTURE_ACCESS::IMAGE_OPERATION && TEXTURE.TEXTURE_ID) {
+				unsigned int TEXTURE_GLID = *(unsigned int*)GFXContentManager->Find_GFXTexture_byID(TEXTURE.TEXTURE_ID)->GL_ID;
+				glBindImageTexture(TEXTURE.BINDING_POINT, TEXTURE_GLID, 0, GL_FALSE, 0, Find_OGLOperationType(TEXTURE.OP_TYPE), Find_ImageTexture_InternalFormat(TEXTURE.CHANNELs));
+			}
+		}
 	}
 
 
@@ -168,25 +170,25 @@ namespace OpenGL4 {
 
 		void* data = uniform->DATA;
 		switch (uniform->VARIABLE_TYPE) {
-		case GFX_API::UNIFORMTYPE::VAR_UINT32:
+		case GFX_API::DATA_TYPE::VAR_UINT32:
 			glUniform1i(location, *(unsigned int*)data);
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_INT32:
+		case GFX_API::DATA_TYPE::VAR_INT32:
 			glUniform1i(location, *(int*)data);
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_FLOAT32:
+		case GFX_API::DATA_TYPE::VAR_FLOAT32:
 			glUniform1f(location, *(float*)data);
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_VEC2:
+		case GFX_API::DATA_TYPE::VAR_VEC2:
 			glUniform2f(location, ((vec2*)data)->x, ((vec2*)data)->y);
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_VEC3:
+		case GFX_API::DATA_TYPE::VAR_VEC3:
 			glUniform3f(location, ((vec3*)data)->x, ((vec3*)data)->y, ((vec3*)uniform->DATA)->z);
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_VEC4:
+		case GFX_API::DATA_TYPE::VAR_VEC4:
 			glUniform4f(location, ((vec4*)data)->x, ((vec4*)data)->y, ((vec4*)uniform->DATA)->z, ((vec4*)uniform->DATA)->w);
 			break;
-		case GFX_API::UNIFORMTYPE::VAR_MAT4x4:
+		case GFX_API::DATA_TYPE::VAR_MAT4x4:
 			glUniformMatrix4fv(location, 1, GL_FALSE, (float*)data);
 			break;
 		default:

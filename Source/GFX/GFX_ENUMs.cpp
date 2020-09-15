@@ -1,23 +1,23 @@
 #include "GFX_ENUMs.h"
 
 namespace GFX_API {
-	GFXAPI unsigned int Get_UNIFORMTYPEs_SIZEinbytes(UNIFORMTYPE uniform) {
+	GFXAPI unsigned int Get_UNIFORMTYPEs_SIZEinbytes(DATA_TYPE uniform) {
 		switch (uniform)
 		{
-		case UNIFORMTYPE::VAR_FLOAT32:
-		case UNIFORMTYPE::VAR_INT32:
-		case UNIFORMTYPE::VAR_UINT32:
+		case DATA_TYPE::VAR_FLOAT32:
+		case DATA_TYPE::VAR_INT32:
+		case DATA_TYPE::VAR_UINT32:
 			return 4;
-		case UNIFORMTYPE::VAR_BYTE8:
-		case UNIFORMTYPE::VAR_UBYTE8:
+		case DATA_TYPE::VAR_BYTE8:
+		case DATA_TYPE::VAR_UBYTE8:
 			return 1;
-		case UNIFORMTYPE::VAR_VEC2:
+		case DATA_TYPE::VAR_VEC2:
 			return 8;
-		case UNIFORMTYPE::VAR_VEC3:
+		case DATA_TYPE::VAR_VEC3:
 			return 12;
-		case UNIFORMTYPE::VAR_VEC4:
+		case DATA_TYPE::VAR_VEC4:
 			return 16;
-		case UNIFORMTYPE::VAR_MAT4x4:
+		case DATA_TYPE::VAR_MAT4x4:
 			return 64;
 		default:
 			TuranAPI::LOG_CRASHING("Uniform's size in bytes isn't set in GFX_ENUMs.cpp!");
@@ -25,25 +25,25 @@ namespace GFX_API {
 		}
 	}
 
-	GFXAPI const char* Find_UNIFORM_VARTYPE_Name(UNIFORMTYPE uniform_var_type) {
+	GFXAPI const char* Find_UNIFORM_VARTYPE_Name(DATA_TYPE uniform_var_type) {
 		switch (uniform_var_type) {
-		case UNIFORMTYPE::VAR_UINT32:
+		case DATA_TYPE::VAR_UINT32:
 			return "Unsigned Integer 32-bit";
-		case UNIFORMTYPE::VAR_INT32:
+		case DATA_TYPE::VAR_INT32:
 			return "Signed Integer 32-bit";
-		case UNIFORMTYPE::VAR_FLOAT32:
+		case DATA_TYPE::VAR_FLOAT32:
 			return "Float 32-bit";
-		case UNIFORMTYPE::VAR_VEC2:
+		case DATA_TYPE::VAR_VEC2:
 			return "Vec2 (2 float)";
-		case UNIFORMTYPE::VAR_VEC3:
+		case DATA_TYPE::VAR_VEC3:
 			return "Vec3 (3 float)";
-		case UNIFORMTYPE::VAR_VEC4:
+		case DATA_TYPE::VAR_VEC4:
 			return "Vec4 (4 float)";
-		case UNIFORMTYPE::VAR_MAT4x4:
+		case DATA_TYPE::VAR_MAT4x4:
 			return "Matrix 4x4";
-		case UNIFORMTYPE::VAR_UBYTE8:
+		case DATA_TYPE::VAR_UBYTE8:
 			return "Unsigned Byte 8-bit";
-		case UNIFORMTYPE::VAR_BYTE8:
+		case DATA_TYPE::VAR_BYTE8:
 			return "Signed Byte 8-bit";
 		default:
 			return "Error, Uniform_Var_Type isn't supported by Find_UNIFORM_VARTYPE_Name!\n";
@@ -86,51 +86,29 @@ namespace GFX_API {
 
 
 	GFXAPI const char* GetNameOf_TextureCHANNELs(TEXTURE_CHANNELs CHANNEL) {
+		TuranAPI::LOG_NOTCODED("Texture Channels enum has changed but function related to it hasn't. Fix it!", true);
 		switch (CHANNEL) {
-		case TEXTURE_CHANNELs::API_TEXTURE_RGB:
-			return "RGB";
-		case TEXTURE_CHANNELs::API_TEXTURE_RGBA:
-			return "RGBA";
-		case TEXTURE_CHANNELs::API_TEXTURE_ALPHA:
-			return "Alpha";
-		case TEXTURE_CHANNELs::API_TEXTURE_RA:
-			return "Red-Alpha";
+		case TEXTURE_CHANNELs::API_TEXTURE_RGB8UB:
+			return "RGB8UB";
 		default:
 			TuranAPI::LOG_ERROR("GetNameOf_TextureCHANNELs doesn't support this channel type!");
 		}
 	}
 	GFXAPI vector<const char*> GetNames_TextureCHANNELs() {
 		return vector<const char*>{
-			GetNameOf_TextureCHANNELs(TEXTURE_CHANNELs::API_TEXTURE_RGB),
-			GetNameOf_TextureCHANNELs(TEXTURE_CHANNELs::API_TEXTURE_RGBA),
-			GetNameOf_TextureCHANNELs(TEXTURE_CHANNELs::API_TEXTURE_ALPHA),
-			GetNameOf_TextureCHANNELs(TEXTURE_CHANNELs::API_TEXTURE_RA)
+
 		};
 	}
 	GFXAPI TEXTURE_CHANNELs GetTextureCHANNEL_byIndex(unsigned int Index) {
+		TuranAPI::LOG_NOTCODED("Texture Channels enum has changed but function related to it hasn't. Fix it!", true);
 		switch (Index) {
-		case 0:
-			return TEXTURE_CHANNELs::API_TEXTURE_RGB;
-		case 1:
-			return TEXTURE_CHANNELs::API_TEXTURE_RGBA;
-		case 2:
-			return TEXTURE_CHANNELs::API_TEXTURE_ALPHA;
-		case 3:
-			return TEXTURE_CHANNELs::API_TEXTURE_RA;
 		default:
 			TuranAPI::LOG_ERROR("GetTextureCHANNEL_byIndex doesn't support this index!");
 		}
 	}
 	GFXAPI unsigned int GetIndexOf_TextureCHANNEL(TEXTURE_CHANNELs CHANNEL) {
+		TuranAPI::LOG_NOTCODED("Texture Channels enum has changed but function related to it hasn't. Fix it!", true);
 		switch (CHANNEL) {
-		case TEXTURE_CHANNELs::API_TEXTURE_RGB:
-			return 0;
-		case TEXTURE_CHANNELs::API_TEXTURE_RGBA:
-			return 1;
-		case TEXTURE_CHANNELs::API_TEXTURE_ALPHA:
-			return 2;
-		case TEXTURE_CHANNELs::API_TEXTURE_RA:
-			return 3;
 		default:
 			TuranAPI::LOG_ERROR("GetIndexOf_TextureCHANNEL doesn't support this channel type!");
 		}

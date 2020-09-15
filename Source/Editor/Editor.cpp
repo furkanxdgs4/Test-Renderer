@@ -1,17 +1,15 @@
 #include "Editor.h"
 using namespace TuranEditor;
-#include <vector>
 
 int main() {
 	Editor_System Systems;
-
 	Game_RenderGraph First_RenderGraph;
 	Main_Window* main_window = new Main_Window(&First_RenderGraph);
 
 	const char* MODEL_PATH = "C:/Users/furka/Desktop/Models/sponza/sponza.obj";
 	unsigned int MODEL_ID = Model_Importer::Import_Model(MODEL_PATH);
 
-	if (MODEL_ID) {	
+	if (MODEL_ID) {
 		Static_Model* MODEL = (Static_Model*)EDITOR_FILESYSTEM->Find_ResourceIdentifier_byID(MODEL_ID)->DATA;
 		for (unsigned int i = 0; i < MODEL->MESHes.size(); i++) {
 			Static_Mesh_Data* MESH = MODEL->MESHes[i];
@@ -23,16 +21,12 @@ int main() {
 			Mesh_DrawCall.JoinedDrawPasses = 0xffffffff;	//Join all draw passes for now!
 
 			First_RenderGraph.Register_DrawCall(Mesh_DrawCall);
-			
-			GFX_API::PointLineDrawCall PointLine_DrawCall;
-			PointLine_DrawCall.Draw_asPoint = false;
-			PointLine_DrawCall.PointBuffer_ID = GFXContentManager->CreatePointBuffer_fromMeshBuffer(MESHBUFFER_ID, 0);
-			First_RenderGraph.Register_PointDrawCall(PointLine_DrawCall);
 		}
 	}
 
-	
 	while (main_window->Get_Is_Window_Open()) {
+		TURAN_PROFILE_SCOPE("Run Loop");
+		
 		Editor_RendererDataManager::Update_GPUResources();
 		IMGUI->New_Frame();
 		IMGUI_RUNWINDOWS();
@@ -44,7 +38,6 @@ int main() {
 		//Take inputs by GFX API specific library that supports input (For now, just GLFW for OpenGL4) and send it to Engine!
 		//In final product, directly OS should be used to take inputs!
 		Editor_System::Take_Inputs();
-		TuranAPI::WRITE_LOGs_toFILEs();
 	}
 
 	return 1;

@@ -5,7 +5,7 @@
 
 namespace TuranEditor {
 	class Main_Window : public GFX_API::IMGUI_WINDOW {
-		unsigned int Scene_View_Texture = 0;
+		unsigned int DisplayTexture = 0, DisplayWidth = 0, DisplayHeight = 0, Scene_View_Texture = 0;
 		Game_RenderGraph* GameRenderGraph = nullptr;
 	public:
 		Main_Window(Game_RenderGraph* GameRenderGraph = nullptr);
